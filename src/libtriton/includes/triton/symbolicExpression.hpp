@@ -45,7 +45,7 @@ namespace triton {
 
       //! \class SymbolicExpression
       /*! \brief The symbolic expression class */
-      class SymbolicExpression {
+      class SymbolicExpression : public std::enable_shared_from_this<SymbolicExpression> {
 
         protected:
           //! The type of the symbolic expression assignment.
@@ -75,9 +75,11 @@ namespace triton {
                                            triton::usize id,
                                            triton::engines::symbolic::expression_e type,
                                            const std::string& comment="");
-
           //! Constructor by copy.
           TRITON_EXPORT SymbolicExpression(const SymbolicExpression& other);
+
+          //! Desctructor.
+          TRITON_EXPORT ~SymbolicExpression();
 
           //! Operator.
           TRITON_EXPORT SymbolicExpression& operator=(const SymbolicExpression& other);

@@ -21,6 +21,7 @@ namespace triton {
   namespace engines {
     namespace symbolic {
 
+
       SymbolicExpression::SymbolicExpression(const triton::ast::SharedAbstractNode& node, triton::usize id, triton::engines::symbolic::expression_e type, const std::string& comment)
         : originMemory(),
           originRegister() {
@@ -32,7 +33,8 @@ namespace triton {
       }
 
 
-      SymbolicExpression::SymbolicExpression(const SymbolicExpression& other) {
+      SymbolicExpression::SymbolicExpression(const SymbolicExpression& other)
+        : std::enable_shared_from_this<SymbolicExpression>(other) {
         this->ast            = other.ast;
         this->comment        = other.comment;
         this->id             = other.id;
@@ -43,7 +45,29 @@ namespace triton {
       }
 
 
+      static std::list<SharedSymbolicExpression> cleanup;
+      SymbolicExpression::~SymbolicExpression() {
+        std::list<triton::ast::SharedAbstractNode> N{};
+        std::list<triton::ast::SharedAbstractNode> W{this->ast};
+
+        while (!W.empty()) {
+          auto node = W.back();
+          N.push_back(node);
+          W.pop_back();
+          for (auto n : node->getChildren())
+            W.push_back(n);
+          if (node->getType() == triton::ast::REFERENCE_NODE) {
+            auto& expr = reinterpret_cast<triton::ast::ReferenceNode*>(node.get())->getSymbolicExpression();
+            if (expr.use_count() == 1) {
+              triton::engines::symbolic::cleanup.push_front(expr);
+            }
+          }
+        }
+      }
+
+
       SymbolicExpression& SymbolicExpression::operator=(const SymbolicExpression& other) {
+        std::enable_shared_from_this<SymbolicExpression>::operator=(other);
         this->ast            = other.ast;
         this->comment        = other.comment;
         this->id             = other.id;
