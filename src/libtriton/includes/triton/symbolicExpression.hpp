@@ -46,7 +46,7 @@ namespace triton {
 
       //! \class SymbolicExpression
       /*! \brief The symbolic expression class */
-      class SymbolicExpression : public std::enable_shared_from_this<SymbolicExpression> {
+      class SymbolicExpression {
 
         protected:
           //! The type of the symbolic expression assignment.

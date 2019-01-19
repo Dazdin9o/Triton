@@ -231,12 +231,12 @@ namespace triton {
     std::list<triton::engines::symbolic::SharedSymbolicExpression> tmp;
 
     while (triton::killGC == false) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(200));
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
       triton::engines::symbolic::exprMutex.lock();
       std::swap(tmp, triton::engines::symbolic::cleanupSymbolicExpressions);
       //std::cout << "cleanup " << tmp.size() << " items" << std::endl;
-      tmp.clear();
       triton::engines::symbolic::exprMutex.unlock();
+      tmp.clear();
     }
 
     //std::cout << "End of GC" << std::endl;
@@ -250,7 +250,6 @@ namespace triton {
 
 
   API::~API() {
-    triton::killGC = true;
     this->removeEngines();
   }
 
@@ -471,13 +470,14 @@ namespace triton {
 
 
   void API::removeEngines(void) {
-    if (this->isArchitectureValid()) {
-      std::list<triton::engines::symbolic::SharedSymbolicExpression> tmp;
+    std::list<triton::engines::symbolic::SharedSymbolicExpression> tmp;
 
+    if (this->isArchitectureValid()) {
+      triton::killGC = true;
       triton::engines::symbolic::exprMutex.lock();
       std::swap(tmp, triton::engines::symbolic::cleanupSymbolicExpressions);
-      tmp.clear();
       triton::engines::symbolic::exprMutex.unlock();
+      tmp.clear();
 
       delete this->irBuilder;
       delete this->solver;

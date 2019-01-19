@@ -20,6 +20,8 @@
 
 
 namespace triton {
+  extern bool killGC;
+
   namespace engines {
     namespace symbolic {
 
@@ -35,8 +37,8 @@ namespace triton {
       }
 
 
-      SymbolicExpression::SymbolicExpression(const SymbolicExpression& other)
-        : std::enable_shared_from_this<SymbolicExpression>(other) {
+      SymbolicExpression::SymbolicExpression(const SymbolicExpression& other) {
+        //: std::enable_shared_from_this<SymbolicExpression>(other) {
         this->ast            = other.ast;
         this->comment        = other.comment;
         this->id             = other.id;
@@ -54,6 +56,9 @@ namespace triton {
 
       SymbolicExpression::~SymbolicExpression() {
         std::list<triton::ast::SharedAbstractNode> W{this->ast};
+
+        if (triton::killGC == true)
+          return;
 
         while (!W.empty()) {
           auto node = W.back();
@@ -76,7 +81,7 @@ namespace triton {
 
 
       SymbolicExpression& SymbolicExpression::operator=(const SymbolicExpression& other) {
-        std::enable_shared_from_this<SymbolicExpression>::operator=(other);
+        //std::enable_shared_from_this<SymbolicExpression>::operator=(other);
         this->ast            = other.ast;
         this->comment        = other.comment;
         this->id             = other.id;
