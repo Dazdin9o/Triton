@@ -251,9 +251,7 @@ namespace triton {
 
   API::~API() {
     triton::killGC = true;
-    triton::engines::symbolic::exprMutex.lock();
     this->removeEngines();
-    triton::engines::symbolic::exprMutex.unlock();
   }
 
 
@@ -474,6 +472,13 @@ namespace triton {
 
   void API::removeEngines(void) {
     if (this->isArchitectureValid()) {
+      std::list<triton::engines::symbolic::SharedSymbolicExpression> tmp;
+
+      triton::engines::symbolic::exprMutex.lock();
+      std::swap(tmp, triton::engines::symbolic::cleanupSymbolicExpressions);
+      tmp.clear();
+      triton::engines::symbolic::exprMutex.unlock();
+
       delete this->irBuilder;
       delete this->solver;
       delete this->symbolic;
