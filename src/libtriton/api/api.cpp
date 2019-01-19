@@ -234,9 +234,9 @@ namespace triton {
       std::this_thread::sleep_for(std::chrono::milliseconds(200));
       triton::engines::symbolic::exprMutex.lock();
       std::swap(tmp, triton::engines::symbolic::cleanupSymbolicExpressions);
-      triton::engines::symbolic::exprMutex.unlock();
       //std::cout << "cleanup " << tmp.size() << " items" << std::endl;
       tmp.clear();
+      triton::engines::symbolic::exprMutex.unlock();
     }
 
     //std::cout << "End of GC" << std::endl;
