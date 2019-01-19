@@ -8,8 +8,9 @@
 #ifndef TRITON_SYMBOLICEXPRESSION_H
 #define TRITON_SYMBOLICEXPRESSION_H
 
-#include <string>
 #include <memory>
+#include <mutex>
+#include <string>
 
 #include <triton/ast.hpp>
 #include <triton/dllexport.hpp>
@@ -147,6 +148,8 @@ namespace triton {
 
       //! A list used by the garbage collector to determine what SymbolicExpression must be deleted.
       extern std::list<triton::engines::symbolic::SharedSymbolicExpression> cleanupSymbolicExpressions;
+
+      extern std::mutex exprMutex;
 
       //! Displays a symbolic expression.
       TRITON_EXPORT std::ostream& operator<<(std::ostream& stream, const SymbolicExpression& symExpr);

@@ -231,10 +231,12 @@ namespace triton {
     std::list<triton::engines::symbolic::SharedSymbolicExpression> tmp;
 
     while (triton::killGC == false) {
-      std::this_thread::sleep_for(std::chrono::seconds(1));
+      std::this_thread::sleep_for(std::chrono::milliseconds(200));
+      triton::engines::symbolic::exprMutex.lock();
       std::swap(tmp, triton::engines::symbolic::cleanupSymbolicExpressions);
+      triton::engines::symbolic::exprMutex.unlock();
+      //std::cout << "cleanup " << tmp.size() << " items" << std::endl;
       tmp.clear();
-      //std::cout << "cleanup" << std::endl;
     }
 
     //std::cout << "End of GC" << std::endl;
@@ -249,8 +251,9 @@ namespace triton {
 
   API::~API() {
     triton::killGC = true;
-    std::this_thread::sleep_for(std::chrono::seconds(2));
+    triton::engines::symbolic::exprMutex.lock();
     this->removeEngines();
+    triton::engines::symbolic::exprMutex.unlock();
   }
 
 

@@ -5,9 +5,11 @@
 **  This program is under the terms of the BSD License.
 */
 
+#include <algorithm>
 #include <iosfwd>                         // for ostream
-#include <string>                         // for string
 #include <sstream>                        // for sstream
+#include <string>                         // for string
+
 #include <triton/ast.hpp>                 // for AbstractNode, newInstance
 #include <triton/astContext.hpp>          // for AstContext
 #include <triton/astRepresentation.hpp>   // for AstRepresentation, astRepre...
@@ -48,15 +50,14 @@ namespace triton {
       //! A list used by the garbage collector to determine what SymbolicExpression must be deleted.
       std::list<triton::engines::symbolic::SharedSymbolicExpression> cleanupSymbolicExpressions;
 
+      std::mutex exprMutex;
 
       SymbolicExpression::~SymbolicExpression() {
-        std::list<triton::ast::SharedAbstractNode> N{};
         std::list<triton::ast::SharedAbstractNode> W{this->ast};
 
         while (!W.empty()) {
           auto node = W.back();
           W.pop_back();
-          N.push_back(node);
 
           for (auto n : node->getChildren())
             W.push_back(n);
@@ -64,7 +65,10 @@ namespace triton {
           if (node->getType() == triton::ast::REFERENCE_NODE) {
             auto& expr = reinterpret_cast<triton::ast::ReferenceNode*>(node.get())->getSymbolicExpression();
             if (expr.use_count() == 1) {
-              triton::engines::symbolic::cleanupSymbolicExpressions.push_front(std::move(expr)); // std::move do not inc the ref
+              exprMutex.lock();
+              if (std::find(cleanupSymbolicExpressions.begin(), cleanupSymbolicExpressions.end(), expr) == cleanupSymbolicExpressions.end())
+                cleanupSymbolicExpressions.push_front(std::move(expr)); // std::move ?
+              exprMutex.unlock();
             }
           }
         }
