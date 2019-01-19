@@ -224,11 +224,32 @@ Note that only the version `71313` of Pin is supported.
 
 namespace triton {
 
-  API::API() : callbacks(*this), arch(&this->callbacks), modes(), astCtxt(this->modes) {
+  //! True if the thread of the garbage collector must be killed.
+  bool killGC;
+
+  void garbageCollector(void) {
+    std::list<triton::engines::symbolic::SharedSymbolicExpression> tmp;
+
+    while (triton::killGC == false) {
+      std::this_thread::sleep_for(std::chrono::seconds(1));
+      std::swap(tmp, triton::engines::symbolic::cleanupSymbolicExpressions);
+      tmp.clear();
+      std::cout << "cleanup" << std::endl;
+    }
+
+    std::cout << "End of GC" << std::endl;
+  }
+
+
+  API::API() : callbacks(*this), arch(&this->callbacks), modes(), astCtxt(this->modes), gc(garbageCollector) {
+    triton::killGC = false;
+    this->gc.detach();
   }
 
 
   API::~API() {
+    triton::killGC = true;
+    std::this_thread::sleep_for(std::chrono::seconds(2));
     this->removeEngines();
   }
 

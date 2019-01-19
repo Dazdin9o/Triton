@@ -45,21 +45,26 @@ namespace triton {
       }
 
 
-      static std::list<SharedSymbolicExpression> cleanup;
+      //! A list used by the garbage collector to determine what SymbolicExpression must be deleted.
+      std::list<triton::engines::symbolic::SharedSymbolicExpression> cleanupSymbolicExpressions;
+
+
       SymbolicExpression::~SymbolicExpression() {
         std::list<triton::ast::SharedAbstractNode> N{};
         std::list<triton::ast::SharedAbstractNode> W{this->ast};
 
         while (!W.empty()) {
           auto node = W.back();
-          N.push_back(node);
           W.pop_back();
+          N.push_back(node);
+
           for (auto n : node->getChildren())
             W.push_back(n);
+
           if (node->getType() == triton::ast::REFERENCE_NODE) {
             auto& expr = reinterpret_cast<triton::ast::ReferenceNode*>(node.get())->getSymbolicExpression();
             if (expr.use_count() == 1) {
-              triton::engines::symbolic::cleanup.push_front(expr);
+              triton::engines::symbolic::cleanupSymbolicExpressions.push_front(std::move(expr)); // std::move do not inc the ref
             }
           }
         }
