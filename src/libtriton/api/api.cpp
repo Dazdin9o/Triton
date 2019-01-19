@@ -234,10 +234,10 @@ namespace triton {
       std::this_thread::sleep_for(std::chrono::seconds(1));
       std::swap(tmp, triton::engines::symbolic::cleanupSymbolicExpressions);
       tmp.clear();
-      std::cout << "cleanup" << std::endl;
+      //std::cout << "cleanup" << std::endl;
     }
 
-    std::cout << "End of GC" << std::endl;
+    //std::cout << "End of GC" << std::endl;
   }
 
 
