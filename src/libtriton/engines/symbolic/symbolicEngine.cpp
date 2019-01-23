@@ -71,6 +71,14 @@ namespace triton {
   namespace engines {
     namespace symbolic {
 
+      void garbageCollect(void) {
+        std::list<triton::engines::symbolic::SharedSymbolicExpression> tmp;
+        std::swap(tmp, triton::engines::symbolic::cleanupSymbolicExpressions);
+        //std::cout << "cleanup " << tmp.size() << " items" << std::endl;
+        tmp.clear();
+      }
+
+
       SymbolicEngine::SymbolicEngine(triton::arch::Architecture* architecture,
                                      triton::modes::Modes& modes,
                                      triton::ast::AstContext& astCtxt,
@@ -111,6 +119,11 @@ namespace triton {
         this->symbolicVariables           = other.symbolicVariables;
         this->uniqueSymExprId             = other.uniqueSymExprId;
         this->uniqueSymVarId              = other.uniqueSymVarId;
+      }
+
+
+      SymbolicEngine::~SymbolicEngine() {
+        triton::engines::symbolic::garbageCollect();
       }
 
 
@@ -347,6 +360,10 @@ namespace triton {
       SharedSymbolicExpression SymbolicEngine::newSymbolicExpression(const triton::ast::SharedAbstractNode& node, triton::engines::symbolic::expression_e type, const std::string& comment) {
         /* Each symbolic expression must have an unique id */
         triton::usize id = this->getUniqueSymExprId();
+
+        /* Garbage collect unused symbolic expressions */
+        if (id % 100 == 0)
+          triton::engines::symbolic::garbageCollect();
 
         /* Performes transformation if there are rules recorded */
         const triton::ast::SharedAbstractNode& snode = this->processSimplification(node);

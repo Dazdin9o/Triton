@@ -20,8 +20,6 @@
 
 
 namespace triton {
-  extern bool killGC;
-
   namespace engines {
     namespace symbolic {
 
@@ -52,13 +50,13 @@ namespace triton {
       //! A list used by the garbage collector to determine what SymbolicExpression must be deleted.
       std::list<triton::engines::symbolic::SharedSymbolicExpression> cleanupSymbolicExpressions;
 
-      std::mutex exprMutex;
-
       SymbolicExpression::~SymbolicExpression() {
         std::list<triton::ast::SharedAbstractNode> W{this->ast};
 
-        if (triton::killGC == true)
-          return;
+        std::list<triton::engines::symbolic::SharedSymbolicExpression> tmp;
+        std::swap(tmp, triton::engines::symbolic::cleanupSymbolicExpressions);
+        //std::cout << "cleanup " << tmp.size() << " items" << std::endl;
+        tmp.clear();
 
         while (!W.empty()) {
           auto node = W.back();
@@ -69,11 +67,8 @@ namespace triton {
 
           if (node->getType() == triton::ast::REFERENCE_NODE) {
             auto& expr = reinterpret_cast<triton::ast::ReferenceNode*>(node.get())->getSymbolicExpression();
-            if (expr.use_count() == 1) {
-              exprMutex.lock();
-              if (std::find(cleanupSymbolicExpressions.begin(), cleanupSymbolicExpressions.end(), expr) == cleanupSymbolicExpressions.end())
-                cleanupSymbolicExpressions.push_front(std::move(expr)); // std::move ?
-              exprMutex.unlock();
+            if (expr.use_count() == 1 && std::find(cleanupSymbolicExpressions.begin(), cleanupSymbolicExpressions.end(), expr) == cleanupSymbolicExpressions.end()) {
+              cleanupSymbolicExpressions.push_front(std::move(expr)); // std::move ?
             }
           }
         }

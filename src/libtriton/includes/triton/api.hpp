@@ -8,9 +8,6 @@
 #ifndef TRITON_API_H
 #define TRITON_API_H
 
-#include <chrono>
-#include <thread>
-
 #include <triton/architecture.hpp>
 #include <triton/ast.hpp>
 #include <triton/astContext.hpp>
@@ -65,9 +62,6 @@ namespace triton {
 
         //! The IR builder.
         triton::arch::IrBuilder* irBuilder = nullptr;
-
-        //! Thread for the garbage collector.
-        std::thread gc;
 
       public:
         //! Constructor of the API.

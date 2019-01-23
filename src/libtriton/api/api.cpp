@@ -224,28 +224,7 @@ Note that only the version `71313` of Pin is supported.
 
 namespace triton {
 
-  //! True if the thread of the garbage collector must be killed.
-  bool killGC;
-
-  void garbageCollector(void) {
-    std::list<triton::engines::symbolic::SharedSymbolicExpression> tmp;
-
-    while (triton::killGC == false) {
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-      triton::engines::symbolic::exprMutex.lock();
-      std::swap(tmp, triton::engines::symbolic::cleanupSymbolicExpressions);
-      //std::cout << "cleanup " << tmp.size() << " items" << std::endl;
-      triton::engines::symbolic::exprMutex.unlock();
-      tmp.clear();
-    }
-
-    //std::cout << "End of GC" << std::endl;
-  }
-
-
-  API::API() : callbacks(*this), arch(&this->callbacks), modes(), astCtxt(this->modes), gc(garbageCollector) {
-    triton::killGC = false;
-    this->gc.detach();
+  API::API() : callbacks(*this), arch(&this->callbacks), modes(), astCtxt(this->modes) {
   }
 
 
@@ -470,15 +449,7 @@ namespace triton {
 
 
   void API::removeEngines(void) {
-    std::list<triton::engines::symbolic::SharedSymbolicExpression> tmp;
-
     if (this->isArchitectureValid()) {
-      triton::killGC = true;
-      triton::engines::symbolic::exprMutex.lock();
-      std::swap(tmp, triton::engines::symbolic::cleanupSymbolicExpressions);
-      triton::engines::symbolic::exprMutex.unlock();
-      tmp.clear();
-
       delete this->irBuilder;
       delete this->solver;
       delete this->symbolic;
