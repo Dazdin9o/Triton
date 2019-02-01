@@ -71,14 +71,6 @@ namespace triton {
   namespace engines {
     namespace symbolic {
 
-      void garbageCollect(void) {
-        std::list<triton::engines::symbolic::SharedSymbolicExpression> tmp;
-        std::swap(tmp, triton::engines::symbolic::cleanupSymbolicExpressions);
-        //std::cout << "cleanup " << tmp.size() << " items" << std::endl;
-        tmp.clear();
-      }
-
-
       SymbolicEngine::SymbolicEngine(triton::arch::Architecture* architecture,
                                      triton::modes::Modes& modes,
                                      triton::ast::AstContext& astCtxt,
@@ -119,14 +111,6 @@ namespace triton {
         this->symbolicVariables           = other.symbolicVariables;
         this->uniqueSymExprId             = other.uniqueSymExprId;
         this->uniqueSymVarId              = other.uniqueSymVarId;
-      }
-
-
-      SymbolicEngine::~SymbolicEngine() {
-        for (auto i = this->uniqueSymExprId ; i != 0 ; i--) {
-          this->removeSymbolicExpression(i);
-        }
-        triton::engines::symbolic::garbageCollect();
       }
 
 
@@ -364,10 +348,6 @@ namespace triton {
         /* Each symbolic expression must have an unique id */
         triton::usize id = this->getUniqueSymExprId();
 
-        /* Garbage collect unused symbolic expressions */
-        if (id % 100 == 0)
-          triton::engines::symbolic::garbageCollect();
-
         /* Performes transformation if there are rules recorded */
         const triton::ast::SharedAbstractNode& snode = this->processSimplification(node);
 
@@ -449,8 +429,7 @@ namespace triton {
         std::vector<triton::ast::SharedAbstractNode>& children = node->getChildren();
 
         if (node->getType() == triton::ast::REFERENCE_NODE) {
-          const SharedSymbolicExpression& expr = reinterpret_cast<triton::ast::ReferenceNode*>(node.get())->getSymbolicExpression();
-          const triton::ast::SharedAbstractNode& ref = expr->getAst();
+          const triton::ast::SharedAbstractNode& ref = reinterpret_cast<triton::ast::ReferenceNode*>(node.get())->getAst();
           return this->unrollAst(ref);
         }
 
@@ -466,8 +445,8 @@ namespace triton {
         std::vector<triton::ast::SharedAbstractNode>& children = node->getChildren();
 
         if (node->getType() == triton::ast::REFERENCE_NODE) {
-          const SharedSymbolicExpression& expr = reinterpret_cast<triton::ast::ReferenceNode*>(node.get())->getSymbolicExpression();
-          triton::usize id = expr->getId();
+          triton::usize id = reinterpret_cast<triton::ast::ReferenceNode*>(node.get())->getId();
+          const SharedSymbolicExpression& expr = this->getSymbolicExpressionFromId(id);
           if (exprs.find(id) == exprs.end()) {
             exprs[id] = expr;
             this->sliceExpressions(expr->getAst(), exprs);

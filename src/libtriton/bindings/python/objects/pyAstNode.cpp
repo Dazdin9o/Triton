@@ -246,7 +246,7 @@ namespace triton {
             return PyLong_FromUint512(reinterpret_cast<triton::ast::DecimalNode*>(node.get())->getValue());
 
           else if (node->getType() == triton::ast::REFERENCE_NODE)
-            return PyLong_FromUsize(reinterpret_cast<triton::ast::ReferenceNode*>(node.get())->getSymbolicExpression()->getId());
+            return PyLong_FromUsize(reinterpret_cast<triton::ast::ReferenceNode*>(node.get())->getId());
 
           else if (node->getType() == triton::ast::STRING_NODE)
             return Py_BuildValue("s", reinterpret_cast<triton::ast::StringNode*>(node.get())->getValue().c_str());

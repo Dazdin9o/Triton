@@ -78,9 +78,6 @@ namespace triton {
           //! Constructor by copy.
           TRITON_EXPORT SymbolicExpression(const SymbolicExpression& other);
 
-          //! Desctructor.
-          TRITON_EXPORT ~SymbolicExpression();
-
           //! Operator.
           TRITON_EXPORT SymbolicExpression& operator=(const SymbolicExpression& other);
 
@@ -144,9 +141,6 @@ namespace triton {
 
       //! Weak Symbolic Expression.
       using WeakSymbolicExpression = std::weak_ptr<triton::engines::symbolic::SymbolicExpression>;
-
-      //! A list used by the garbage collector to determine what SymbolicExpression must be deleted.
-      extern std::list<triton::engines::symbolic::SharedSymbolicExpression> cleanupSymbolicExpressions;
 
       //! Displays a symbolic expression.
       TRITON_EXPORT std::ostream& operator<<(std::ostream& stream, const SymbolicExpression& symExpr);

@@ -63,12 +63,14 @@ namespace triton {
         //! The IR builder.
         triton::arch::IrBuilder* irBuilder = nullptr;
 
+
       public:
         //! Constructor of the API.
         TRITON_EXPORT API();
 
         //! Destructor of the API.
         TRITON_EXPORT ~API();
+
 
         /* Architecture API ============================================================================== */
 

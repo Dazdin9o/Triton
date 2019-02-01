@@ -590,13 +590,15 @@ namespace triton {
     //! Reference node
     class ReferenceNode : public AbstractNode {
       protected:
-        triton::engines::symbolic::SharedSymbolicExpression expr;
+        triton::usize id;
+        SharedAbstractNode ast;
 
       public:
         TRITON_EXPORT ReferenceNode(const triton::engines::symbolic::SharedSymbolicExpression& expr);
         TRITON_EXPORT void init(void);
         TRITON_EXPORT triton::uint512 hash(triton::uint32 deep) const;
-        TRITON_EXPORT const triton::engines::symbolic::SharedSymbolicExpression& getSymbolicExpression(void) const;
+        TRITON_EXPORT SharedAbstractNode getAst(void) const;
+        TRITON_EXPORT triton::usize getId(void) const;
     };
 
 

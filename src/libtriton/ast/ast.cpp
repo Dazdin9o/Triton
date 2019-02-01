@@ -2132,19 +2132,20 @@ namespace triton {
 
 
     ReferenceNode::ReferenceNode(const triton::engines::symbolic::SharedSymbolicExpression& expr)
-      : AbstractNode(REFERENCE_NODE, expr->getAst()->getContext())
-      , expr(expr) {
+      : AbstractNode(REFERENCE_NODE, expr->getAst()->getContext()),
+      ast(expr->getAst()) {
+      this->id = expr->getId();
     }
 
 
     void ReferenceNode::init(void) {
       /* Init attributes */
-      this->eval        = this->expr->getAst()->evaluate();
-      this->logical     = this->expr->getAst()->isLogical();
-      this->size        = this->expr->getAst()->getBitvectorSize();
-      this->symbolized  = this->expr->getAst()->isSymbolized();
+      this->eval        = this->ast->evaluate();
+      this->logical     = this->ast->isLogical();
+      this->size        = this->ast->getBitvectorSize();
+      this->symbolized  = this->ast->isSymbolized();
 
-      this->expr->getAst()->setParent(this);
+      this->ast->setParent(this);
 
       /* Init parents */
       this->initParents();
@@ -2152,13 +2153,18 @@ namespace triton {
 
 
     triton::uint512 ReferenceNode::hash(triton::uint32 deep) const {
-      triton::uint512 hash = this->type ^ this->expr->getId();
+      triton::uint512 hash = this->type ^ this->id;
       return hash;
     }
 
 
-    const triton::engines::symbolic::SharedSymbolicExpression& ReferenceNode::getSymbolicExpression(void) const {
-      return this->expr;
+    SharedAbstractNode ReferenceNode::getAst(void) const {
+      return this->ast;
+    }
+
+
+    usize ReferenceNode::getId(void) const {
+      return this->id;
     }
 
 
