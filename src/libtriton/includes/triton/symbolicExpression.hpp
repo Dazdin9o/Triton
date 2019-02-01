@@ -146,7 +146,7 @@ namespace triton {
       using WeakSymbolicExpression = std::weak_ptr<triton::engines::symbolic::SymbolicExpression>;
 
       //! A list used by the garbage collector to determine what SymbolicExpression must be deleted.
-      extern std::list<triton::engines::symbolic::SharedSymbolicExpression> cleanupSymbolicExpressions;
+      extern std::list<triton::engines::symbolic::WeakSymbolicExpression> cleanupSymbolicExpressions;
 
       //! Displays a symbolic expression.
       TRITON_EXPORT std::ostream& operator<<(std::ostream& stream, const SymbolicExpression& symExpr);
