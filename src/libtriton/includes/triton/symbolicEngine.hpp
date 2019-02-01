@@ -150,6 +150,9 @@ namespace triton {
           //! Slices all expressions from a given node.
           void sliceExpressions(const triton::ast::SharedAbstractNode& node, std::map<triton::usize, SharedSymbolicExpression>& exprs);
 
+          //! This method garbage collects unused symbolic expressions.
+          void garbageCollect(void);
+
         public:
           //! Constructor.
           TRITON_EXPORT SymbolicEngine(triton::arch::Architecture* architecture,

@@ -71,10 +71,11 @@ namespace triton {
   namespace engines {
     namespace symbolic {
 
-      void garbageCollect(void) {
+      void SymbolicEngine::garbageCollect(void) {
         std::list<triton::engines::symbolic::SharedSymbolicExpression> tmp;
         std::swap(tmp, triton::engines::symbolic::cleanupSymbolicExpressions);
-        //std::cout << "cleanup " << tmp.size() << " items" << std::endl;
+        //if (tmp.size())
+        //  std::cout << "cleanup " << tmp.size() << " items" << std::endl;
         tmp.clear();
       }
 
@@ -123,10 +124,17 @@ namespace triton {
 
 
       SymbolicEngine::~SymbolicEngine() {
-        for (auto i = this->uniqueSymExprId ; i != 0 ; i--) {
-          this->removeSymbolicExpression(i);
-        }
-        triton::engines::symbolic::garbageCollect();
+        //std::cout << "[END 1]" << std::endl;
+
+        this->alignedMemoryReference.clear();
+        this->memoryReference.clear();
+        this->symbolicReg.clear();
+
+        /* Garbage collect while it's needed */
+        while (triton::engines::symbolic::cleanupSymbolicExpressions.size())
+          this->garbageCollect();
+
+        //std::cout << "[END 2]" << std::endl;
       }
 
 
@@ -366,7 +374,7 @@ namespace triton {
 
         /* Garbage collect unused symbolic expressions */
         if (id % 100 == 0)
-          triton::engines::symbolic::garbageCollect();
+          this->garbageCollect();
 
         /* Performes transformation if there are rules recorded */
         const triton::ast::SharedAbstractNode& snode = this->processSimplification(node);
