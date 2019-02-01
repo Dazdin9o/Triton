@@ -72,7 +72,7 @@ namespace triton {
     namespace symbolic {
 
       void garbageCollect(void) {
-        std::list<triton::engines::symbolic::WeakSymbolicExpression> tmp;
+        std::list<triton::engines::symbolic::SharedSymbolicExpression> tmp;
         std::swap(tmp, triton::engines::symbolic::cleanupSymbolicExpressions);
         //std::cout << "cleanup " << tmp.size() << " items" << std::endl;
         tmp.clear();
@@ -123,6 +123,9 @@ namespace triton {
 
 
       SymbolicEngine::~SymbolicEngine() {
+        for (auto i = this->uniqueSymExprId ; i != 0 ; i--) {
+          this->removeSymbolicExpression(i);
+        }
         triton::engines::symbolic::garbageCollect();
       }
 

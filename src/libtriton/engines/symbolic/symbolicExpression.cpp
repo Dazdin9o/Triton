@@ -36,7 +36,6 @@ namespace triton {
 
 
       SymbolicExpression::SymbolicExpression(const SymbolicExpression& other) {
-        //: std::enable_shared_from_this<SymbolicExpression>(other) {
         this->ast            = other.ast;
         this->comment        = other.comment;
         this->id             = other.id;
@@ -48,15 +47,10 @@ namespace triton {
 
 
       //! A list used by the garbage collector to determine what SymbolicExpression must be deleted.
-      std::list<triton::engines::symbolic::WeakSymbolicExpression> cleanupSymbolicExpressions;
+      std::list<triton::engines::symbolic::SharedSymbolicExpression> cleanupSymbolicExpressions;
 
       SymbolicExpression::~SymbolicExpression() {
         std::list<triton::ast::SharedAbstractNode> W{this->ast};
-
-        std::list<triton::engines::symbolic::WeakSymbolicExpression> tmp;
-        std::swap(tmp, triton::engines::symbolic::cleanupSymbolicExpressions);
-        //std::cout << "cleanup " << tmp.size() << " items" << std::endl;
-        tmp.clear();
 
         while (!W.empty()) {
           auto node = W.back();
@@ -67,8 +61,8 @@ namespace triton {
 
           if (node->getType() == triton::ast::REFERENCE_NODE) {
             auto& expr = reinterpret_cast<triton::ast::ReferenceNode*>(node.get())->getSymbolicExpression();
-            if (expr.use_count()) { //== 1 && std::find(cleanupSymbolicExpressions.begin(), cleanupSymbolicExpressions.end(), expr) == cleanupSymbolicExpressions.end()) {
-              cleanupSymbolicExpressions.push_front(expr); // std::move ?
+            if (expr.use_count() == 1 && std::find(cleanupSymbolicExpressions.begin(), cleanupSymbolicExpressions.end(), expr) == cleanupSymbolicExpressions.end()) {
+              cleanupSymbolicExpressions.push_front(expr);
             }
           }
         }
@@ -76,7 +70,6 @@ namespace triton {
 
 
       SymbolicExpression& SymbolicExpression::operator=(const SymbolicExpression& other) {
-        //std::enable_shared_from_this<SymbolicExpression>::operator=(other);
         this->ast            = other.ast;
         this->comment        = other.comment;
         this->id             = other.id;
