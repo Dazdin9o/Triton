@@ -5,12 +5,11 @@
 **  This program is under the terms of the BSD License.
 */
 
-#include <triton/pythonObjects.hpp>
+#include <triton/pythonBindings.hpp>
 #include <triton/pythonUtils.hpp>
-#include <triton/pythonXFunctions.hpp>
 #include <triton/astContext.hpp>
-#include <triton/exceptions.hpp>
-#include <triton/register.hpp>
+#include <triton/symbolicExpression.hpp>
+#include <triton/symbolicVariable.hpp>
 #ifdef Z3_INTERFACE
   #include <triton/tritonToZ3Ast.hpp>
 #endif
@@ -320,1268 +319,163 @@ namespace triton {
   namespace bindings {
     namespace python {
 
-
-      static PyObject* AstContext_assert(PyObject* self, PyObject* op1) {
-        if (!PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "assert_(): expected a AstNode as first argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->assert_(PyAstNode_AsAstNode(op1)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bv(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || (!PyLong_Check(op1) && !PyInt_Check(op1)))
-          return PyErr_Format(PyExc_TypeError, "bv(): expected an integer as first argument");
-
-        if (op2 == nullptr || (!PyLong_Check(op2) && !PyInt_Check(op2)))
-          return PyErr_Format(PyExc_TypeError, "bv(): expected an integer as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bv(PyLong_AsUint512(op1), PyLong_AsUint32(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvadd(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvadd(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvadd(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvadd(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvand(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvand(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvand(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvand(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvashr(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvashr(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvashr(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvashr(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvfalse(PyObject* self, PyObject* args) {
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvfalse());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvtrue(PyObject* self, PyObject* args) {
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvtrue());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvlshr(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvlshr(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvlshr(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvlshr(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvmul(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvmul(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvmul(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvmul(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvnand(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvnand(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvnand(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvnand(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvneg(PyObject* self, PyObject* op1) {
-        if (!PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvneg(): expected a AstNode as first argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvneg(PyAstNode_AsAstNode(op1)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvnor(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvnor(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvnor(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvnor(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvnot(PyObject* self, PyObject* op1) {
-        if (!PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvnot(): expected a AstNode as first argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvnot(PyAstNode_AsAstNode(op1)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvor(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvor(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvor(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvor(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvror(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvror(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvror(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvror(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvrol(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvrol(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvrol(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvrol(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvsdiv(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvsdiv(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvsdiv(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvsdiv(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvsge(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvsge(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvsge(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvsge(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvsgt(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvsgt(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvsgt(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvsgt(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvshl(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvshl(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvshl(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvshl(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvsle(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvsle(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvsle(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvsle(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvslt(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvslt(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvslt(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvslt(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvsmod(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvsmod(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvsmod(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvsmod(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvsrem(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvsrem(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvsrem(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvsrem(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvsub(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvsub(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvsub(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvsub(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvudiv(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvudiv(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvudiv(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvudiv(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvuge(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvuge(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvuge(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvuge(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvugt(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvugt(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvugt(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvugt(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvule(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvule(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvule(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvule(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvult(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvult(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvult(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvult(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvurem(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvurem(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvurem(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvurem(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvxnor(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvxnor(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvxnor(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvxnor(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_bvxor(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "bvxor(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "bvxor(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->bvxor(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_declare(PyObject* self, PyObject* var) {
-        if (!PyAstNode_Check(var))
-          return PyErr_Format(PyExc_TypeError, "duplicate(): expected a AstNode as argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->declare(PyAstNode_AsAstNode(var)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_distinct(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "distinct(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "distinct(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->distinct(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_duplicate(PyObject* self, PyObject* expr) {
-        if (!PyAstNode_Check(expr))
-          return PyErr_Format(PyExc_TypeError, "duplicate(): expected a AstNode as argument");
-
-        try {
-          return PyAstNode(triton::ast::newInstance(PyAstNode_AsAstNode(expr).get()));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_compound(PyObject* self, PyObject* exprsList) {
-        std::vector<triton::ast::SharedAbstractNode> exprs;
-
-        if (exprsList == nullptr || !PyList_Check(exprsList))
-          return PyErr_Format(PyExc_TypeError, "compound(): expected a list of AstNodes as first argument");
-
-        /* Check if the list contains only PyAstNode */
-        for (Py_ssize_t i = 0; i < PyList_Size(exprsList); i++){
-          PyObject* item = PyList_GetItem(exprsList, i);
-
-          if (!PyAstNode_Check(item))
-            return PyErr_Format(PyExc_TypeError, "compound(): Each element from the list must be a AstNode");
-
-          exprs.push_back(PyAstNode_AsAstNode(item));
-        }
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->compound(exprs));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_concat(PyObject* self, PyObject* exprsList) {
-        std::vector<triton::ast::SharedAbstractNode> exprs;
-
-        if (exprsList == nullptr || !PyList_Check(exprsList))
-          return PyErr_Format(PyExc_TypeError, "concat(): expected a list of AstNodes as first argument");
-
-        /* Check if the list contains only PyAstNode */
-        for (Py_ssize_t i = 0; i < PyList_Size(exprsList); i++){
-          PyObject* item = PyList_GetItem(exprsList, i);
-
-          if (!PyAstNode_Check(item))
-            return PyErr_Format(PyExc_TypeError, "concat(): Each element from the list must be a AstNode");
-
-          exprs.push_back(PyAstNode_AsAstNode(item));
-        }
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->concat(exprs));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_equal(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "equal(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "equal(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->equal(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_extract(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-        PyObject* op3 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OOO", &op1, &op2, &op3);
-
-        if (op1 == nullptr || (!PyLong_Check(op1) && !PyInt_Check(op1)))
-          return PyErr_Format(PyExc_TypeError, "extract(): expected an integer as first argument");
-
-        if (op2 == nullptr || (!PyLong_Check(op2) && !PyInt_Check(op2)))
-          return PyErr_Format(PyExc_TypeError, "extract(): expected an integer as second argument");
-
-        if (op3 == nullptr || !PyAstNode_Check(op3))
-          return PyErr_Format(PyExc_TypeError, "extract(): expected a AstNode as third argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->extract(PyLong_AsUint32(op1), PyLong_AsUint32(op2), PyAstNode_AsAstNode(op3)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_iff(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "iff(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "iff(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->iff(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_ite(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-        PyObject* op3 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OOO", &op1, &op2, &op3);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "ite(): expected a AstNode as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "ite(): expected a AstNode as second argument");
-
-        if (op3 == nullptr || !PyAstNode_Check(op3))
-          return PyErr_Format(PyExc_TypeError, "ite(): expected a AstNode as third argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->ite(PyAstNode_AsAstNode(op1), PyAstNode_AsAstNode(op2), PyAstNode_AsAstNode(op3)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_land(PyObject* self, PyObject* exprsList) {
-        std::vector<triton::ast::SharedAbstractNode> exprs;
-
-        if (exprsList == nullptr || !PyList_Check(exprsList))
-          return PyErr_Format(PyExc_TypeError, "land(): expected a list of AstNodes as first argument");
-
-        /* Check if the list contains only PyAstNode */
-        for (Py_ssize_t i = 0; i < PyList_Size(exprsList); i++){
-          PyObject* item = PyList_GetItem(exprsList, i);
-
-          if (!PyAstNode_Check(item))
-            return PyErr_Format(PyExc_TypeError, "land(): Each element from the list must be a AstNode");
-
-          exprs.push_back(PyAstNode_AsAstNode(item));
-        }
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->land(exprs));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_let(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-        PyObject* op3 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OOO", &op1, &op2, &op3);
-
-        if (op1 == nullptr || !PyString_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "let(): expected a string as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "let(): expected a AstNode as second argument");
-
-        if (op3 == nullptr || !PyAstNode_Check(op3))
-          return PyErr_Format(PyExc_TypeError, "let(): expected a AstNode as third argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->let(PyString_AsString(op1), PyAstNode_AsAstNode(op2), PyAstNode_AsAstNode(op3)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_lnot(PyObject* self, PyObject* expr) {
-        if (expr == nullptr || !PyAstNode_Check(expr))
-          return PyErr_Format(PyExc_TypeError, "lnot(): expected a AstNode as argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->lnot(PyAstNode_AsAstNode(expr)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_lookingForNodes(PyObject* self, PyObject* args) {
-        PyObject* ret = nullptr;
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || !PyAstNode_Check(op1))
-          return PyErr_Format(PyExc_TypeError, "lookingForNodes(): expected a AstNode object as first argument");
-
-        if (op2 == nullptr || (!PyLong_Check(op2) && !PyInt_Check(op2)))
-          return PyErr_Format(PyExc_TypeError, "lookingForNodes(): expected a AST_NODE enum as second argument");
-
-        try {
-          auto nodes = triton::ast::lookingForNodes(PyAstNode_AsAstNode(op1), static_cast<triton::ast::ast_e>(PyLong_AsUint32(op2)));
-          ret = xPyList_New(nodes.size());
-
-          triton::uint32 index = 0;
-          for (auto&& node : nodes)
-            PyList_SetItem(ret, index++, PyAstNode(node));
-
-          return ret;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_lor(PyObject* self, PyObject* exprsList) {
-        std::vector<triton::ast::SharedAbstractNode> exprs;
-
-        if (exprsList == nullptr || !PyList_Check(exprsList))
-          return PyErr_Format(PyExc_TypeError, "lor(): expected a list of AstNodes as first argument");
-
-        /* Check if the list contains only PyAstNode */
-        for (Py_ssize_t i = 0; i < PyList_Size(exprsList); i++){
-          PyObject* item = PyList_GetItem(exprsList, i);
-
-          if (!PyAstNode_Check(item))
-            return PyErr_Format(PyExc_TypeError, "lor(): Each element from the list must be a AstNode");
-
-          exprs.push_back(PyAstNode_AsAstNode(item));
-        }
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->lor(exprs));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_reference(PyObject* self, PyObject* symExpr) {
-        if (!PySymbolicExpression_Check(symExpr))
-          return PyErr_Format(PyExc_TypeError, "reference(): expected a symbolic expression as argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->reference(PySymbolicExpression_AsSymbolicExpression(symExpr)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_string(PyObject* self, PyObject* expr) {
-        if (!PyString_Check(expr))
-          return PyErr_Format(PyExc_TypeError, "string(): expected a string as first argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->string(PyString_AsString(expr)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_sx(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || (!PyLong_Check(op1) && !PyInt_Check(op1)))
-          return PyErr_Format(PyExc_TypeError, "sx(): expected an integer as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "sx(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->sx(PyLong_AsUint32(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_unrollAst(PyObject* self, PyObject* node) {
-        if (!PyAstNode_Check(node))
-          return PyErr_Format(PyExc_TypeError, "unrollAst(): Expects a AstNode as argument.");
-
-        try {
-          return PyAstNode(triton::ast::unrollAst(PyAstNode_AsAstNode(node)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_variable(PyObject* self, PyObject* symVar) {
-        if (!PySymbolicVariable_Check(symVar))
-          return PyErr_Format(PyExc_TypeError, "variable(): expected a SymbolicVariable as first argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->variable(PySymbolicVariable_AsSymbolicVariable(symVar)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstContext_zx(PyObject* self, PyObject* args) {
-        PyObject* op1 = nullptr;
-        PyObject* op2 = nullptr;
-
-        /* Extract arguments */
-        PyArg_ParseTuple(args, "|OO", &op1, &op2);
-
-        if (op1 == nullptr || (!PyLong_Check(op1) && !PyInt_Check(op1)))
-          return PyErr_Format(PyExc_TypeError, "zx(): expected an integer as first argument");
-
-        if (op2 == nullptr || !PyAstNode_Check(op2))
-          return PyErr_Format(PyExc_TypeError, "zx(): expected a AstNode as second argument");
-
-        try {
-          return PyAstNode(PyAstContext_AsAstContext(self)->zx(PyLong_AsUint32(op1), PyAstNode_AsAstNode(op2)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-      // *********************************************************************
-
-      #ifdef Z3_INTERFACE
-      static PyObject* AstContext_tritonToZ3(PyObject* self, PyObject* node) {
-        triton::ast::TritonToZ3Ast tritonToZ3Ast{false};
-
-        if (node == nullptr || (!PyAstNode_Check(node)))
-          return PyErr_Format(PyExc_TypeError, "tritonToZ3(): Expects a AstNode as argument.");
-
-        // import z3
-        PyObject* z3mod = PyImport_ImportModule("z3");
-        if (z3mod == nullptr) {
-          return PyErr_Format(PyExc_TypeError, "tritonToZ3(): z3 module not found.");
-        }
-
-        // z3.main_ctx().ctx.value
-        PyObject* z3MainCtx = PyObject_CallObject(PyObject_GetAttrString(z3mod, "main_ctx"), nullptr);
-        PyObject* z3CtxPtr  = PyObject_GetAttrString(PyObject_GetAttrString(z3MainCtx, "ctx"), "value");
-        Z3_context z3Ctx    = reinterpret_cast<Z3_context>(PyLong_AsVoidPtr(z3CtxPtr));
-        Py_DECREF(z3CtxPtr);
-        Py_DECREF(z3MainCtx);
-
-        // Convert the node to a Z3++ expression and translate it into
-        // python's z3 main context
-        z3::expr expr = tritonToZ3Ast.convert(PyAstNode_AsAstNode(node));
-        Z3_ast ast    = Z3_translate(expr.ctx(), expr, z3Ctx);
-
-        // Check that everything went fine
-        if (Z3_get_error_code(expr.ctx()) != Z3_OK) {
-          Py_DECREF(z3mod);
-          return PyErr_Format(PyExc_RuntimeError, "tritonToZ3(): Z3 AST translation failed.");
-        }
-
-        // retAst = ctypes.c_void_p(ctx_ptr); retAst.__class__ = z3.Ast
-        PyObject* pyArgs = Py_BuildValue("(O)", PyLong_FromVoidPtr(ast));
-        PyObject* retAst = PyObject_CallObject(PyObject_GetAttrString(z3mod, "c_void_p"), pyArgs);
-        PyObject_SetAttrString(retAst, "__class__", PyObject_GetAttrString(z3mod, "Ast"));
-        Py_DECREF(pyArgs);
-
-        // return z3.ExprRef(ast)
-        PyObject* z3ExprRef = PyObject_GetAttrString(z3mod, "ExprRef");
-        pyArgs = Py_BuildValue("(O)", retAst);
-        PyObject* retExpr = PyInstance_New(z3ExprRef, pyArgs, nullptr);
-        Py_DECREF(pyArgs);
-        Py_DECREF(retAst);
-        Py_DECREF(z3ExprRef);
-
-        // Cleanup
-        Py_DECREF(z3mod);
-
-        return retExpr;
-      }
-      #endif
-
-
-      //! AstContext methods.
-      PyMethodDef AstContext_callbacks[] = {
-        {"assert_",         AstContext_assert,          METH_O,           ""},
-        {"bv",              AstContext_bv,              METH_VARARGS,     ""},
-        {"bvadd",           AstContext_bvadd,           METH_VARARGS,     ""},
-        {"bvand",           AstContext_bvand,           METH_VARARGS,     ""},
-        {"bvashr",          AstContext_bvashr,          METH_VARARGS,     ""},
-        {"bvfalse",         AstContext_bvfalse,         METH_NOARGS,      ""},
-        {"bvlshr",          AstContext_bvlshr,          METH_VARARGS,     ""},
-        {"bvmul",           AstContext_bvmul,           METH_VARARGS,     ""},
-        {"bvnand",          AstContext_bvnand,          METH_VARARGS,     ""},
-        {"bvneg",           AstContext_bvneg,           METH_O,           ""},
-        {"bvnor",           AstContext_bvnor,           METH_VARARGS,     ""},
-        {"bvnot",           AstContext_bvnot,           METH_O,           ""},
-        {"bvor",            AstContext_bvor,            METH_VARARGS,     ""},
-        {"bvrol",           AstContext_bvrol,           METH_VARARGS,     ""},
-        {"bvror",           AstContext_bvror,           METH_VARARGS,     ""},
-        {"bvsdiv",          AstContext_bvsdiv,          METH_VARARGS,     ""},
-        {"bvsge",           AstContext_bvsge,           METH_VARARGS,     ""},
-        {"bvsgt",           AstContext_bvsgt,           METH_VARARGS,     ""},
-        {"bvshl",           AstContext_bvshl,           METH_VARARGS,     ""},
-        {"bvsle",           AstContext_bvsle,           METH_VARARGS,     ""},
-        {"bvslt",           AstContext_bvslt,           METH_VARARGS,     ""},
-        {"bvsmod",          AstContext_bvsmod,          METH_VARARGS,     ""},
-        {"bvsrem",          AstContext_bvsrem,          METH_VARARGS,     ""},
-        {"bvsub",           AstContext_bvsub,           METH_VARARGS,     ""},
-        {"bvtrue",          AstContext_bvtrue,          METH_NOARGS,      ""},
-        {"bvudiv",          AstContext_bvudiv,          METH_VARARGS,     ""},
-        {"bvuge",           AstContext_bvuge,           METH_VARARGS,     ""},
-        {"bvugt",           AstContext_bvugt,           METH_VARARGS,     ""},
-        {"bvule",           AstContext_bvule,           METH_VARARGS,     ""},
-        {"bvult",           AstContext_bvult,           METH_VARARGS,     ""},
-        {"bvurem",          AstContext_bvurem,          METH_VARARGS,     ""},
-        {"bvxnor",          AstContext_bvxnor ,         METH_VARARGS,     ""},
-        {"bvxor",           AstContext_bvxor,           METH_VARARGS,     ""},
-        {"compound",        AstContext_compound,        METH_O,           ""},
-        {"concat",          AstContext_concat,          METH_O,           ""},
-        {"declare",         AstContext_declare,         METH_O,           ""},
-        {"distinct",        AstContext_distinct,        METH_VARARGS,     ""},
-        {"duplicate",       AstContext_duplicate,       METH_O,           ""},
-        {"equal",           AstContext_equal,           METH_VARARGS,     ""},
-        {"extract",         AstContext_extract,         METH_VARARGS,     ""},
-        {"iff",             AstContext_iff,             METH_VARARGS,     ""},
-        {"ite",             AstContext_ite,             METH_VARARGS,     ""},
-        {"land",            AstContext_land,            METH_O,           ""},
-        {"let",             AstContext_let,             METH_VARARGS,     ""},
-        {"lnot",            AstContext_lnot,            METH_O,           ""},
-        {"lookingForNodes", AstContext_lookingForNodes, METH_VARARGS,     ""},
-        {"lor",             AstContext_lor,             METH_O,           ""},
-        {"reference",       AstContext_reference,       METH_O,           ""},
-        {"string",          AstContext_string,          METH_O,           ""},
-        {"sx",              AstContext_sx,              METH_VARARGS,     ""},
-        {"unrollAst",       AstContext_unrollAst,       METH_O,           ""},
-        {"variable",        AstContext_variable,        METH_O,           ""},
-        {"zx",              AstContext_zx,              METH_VARARGS,     ""},
-        #ifdef Z3_INTERFACE
-        {"tritonToZ3",      AstContext_tritonToZ3,      METH_O,           ""},
-        #endif
-        {nullptr,           nullptr,                    0,                nullptr}
-      };
-
-
-      //! Python description for an ast context.
-      PyTypeObject AstContext_Type = {
-        PyObject_HEAD_INIT(&PyType_Type)
-        0,                                          /* ob_size */
-        "AstContext",                               /* tp_name */
-        sizeof(AstContext_Object),                  /* tp_basicsize */
-        0,                                          /* tp_itemsize */
-        0,                                          /* tp_dealloc */
-        0,                                          /* tp_print */
-        0,                                          /* tp_getattr */
-        0,                                          /* tp_setattr */
-        0,                                          /* tp_compare */
-        0,                                          /* tp_repr */
-        0,                                          /* tp_as_number */
-        0,                                          /* tp_as_sequence */
-        0,                                          /* tp_as_mapping */
-        0,                                          /* tp_hash */
-        0,                                          /* tp_call */
-        0,                                          /* tp_str */
-        0,                                          /* tp_getattro */
-        0,                                          /* tp_setattro */
-        0,                                          /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT,                         /* tp_flags */
-        "AstContext objects",                       /* tp_doc */
-        0,                                          /* tp_traverse */
-        0,                                          /* tp_clear */
-        0,                                          /* tp_richcompare */
-        0,                                          /* tp_weaklistoffset */
-        0,                                          /* tp_iter */
-        0,                                          /* tp_iternext */
-        AstContext_callbacks,                       /* tp_methods */
-        0,                                          /* tp_members */
-        0,                                          /* tp_getset */
-        0,                                          /* tp_base */
-        0,                                          /* tp_dict */
-        0,                                          /* tp_descr_get */
-        0,                                          /* tp_descr_set */
-        0,                                          /* tp_dictoffset */
-        0,                                          /* tp_init */
-        0,                                          /* tp_alloc */
-        0,                                          /* tp_new */
-        0,                                          /* tp_free */
-        0,                                          /* tp_is_gc */
-        0,                                          /* tp_bases */
-        0,                                          /* tp_mro */
-        0,                                          /* tp_cache */
-        0,                                          /* tp_subclasses */
-        0,                                          /* tp_weaklist */
-        0,                                          /* tp_del */
-        0                                           /* tp_version_tag */
-      };
-
-
-      PyObject* PyAstContext(triton::ast::AstContext& ctxt) {
-        PyType_Ready(&AstContext_Type);
-        AstContext_Object* object = PyObject_NEW(AstContext_Object, &AstContext_Type);
-
-        if (object != nullptr)
-          object->ctxt = &ctxt;
-
-        return (PyObject*)object;
+      void initAstContextObject(pybind11::module& pyTriton) {
+        pybind11::class_<triton::ast::AstContext>(pyTriton, "AstContext", "The AstContext class")
+
+          .def("assert_",   &triton::ast::AstContext::assert_)
+          .def("bvadd",     &triton::ast::AstContext::bvadd)
+          .def("bvand",     &triton::ast::AstContext::bvand)
+          .def("bvashr",    &triton::ast::AstContext::bvashr)
+          .def("bvfalse",   &triton::ast::AstContext::bvfalse)
+          .def("bvlshr",    &triton::ast::AstContext::bvlshr)
+          .def("bvmul",     &triton::ast::AstContext::bvmul)
+          .def("bvnand",    &triton::ast::AstContext::bvnand)
+          .def("bvneg",     &triton::ast::AstContext::bvneg)
+          .def("bvnor",     &triton::ast::AstContext::bvnor)
+          .def("bvnot",     &triton::ast::AstContext::bvnot)
+          .def("bvor",      &triton::ast::AstContext::bvor)
+          .def("bvsdiv",    &triton::ast::AstContext::bvsdiv)
+          .def("bvsge",     &triton::ast::AstContext::bvsge)
+          .def("bvsgt",     &triton::ast::AstContext::bvsgt)
+          .def("bvshl",     &triton::ast::AstContext::bvshl)
+          .def("bvsle",     &triton::ast::AstContext::bvsle)
+          .def("bvslt",     &triton::ast::AstContext::bvslt)
+          .def("bvsmod",    &triton::ast::AstContext::bvsmod)
+          .def("bvsrem",    &triton::ast::AstContext::bvsrem)
+          .def("bvsub",     &triton::ast::AstContext::bvsub)
+          .def("bvtrue",    &triton::ast::AstContext::bvtrue)
+          .def("bvudiv",    &triton::ast::AstContext::bvudiv)
+          .def("bvuge",     &triton::ast::AstContext::bvuge)
+          .def("bvugt",     &triton::ast::AstContext::bvugt)
+          .def("bvule",     &triton::ast::AstContext::bvule)
+          .def("bvult",     &triton::ast::AstContext::bvult)
+          .def("bvurem",    &triton::ast::AstContext::bvurem)
+          .def("bvxnor",    &triton::ast::AstContext::bvxnor)
+          .def("bvxor",     &triton::ast::AstContext::bvxor)
+          .def("declare",   &triton::ast::AstContext::declare)
+          .def("distinct",  &triton::ast::AstContext::distinct)
+          .def("equal",     &triton::ast::AstContext::equal)
+          .def("extract",   &triton::ast::AstContext::extract)
+          .def("iff",       &triton::ast::AstContext::iff)
+          .def("ite",       &triton::ast::AstContext::ite)
+          .def("let",       &triton::ast::AstContext::let)
+          .def("lnot",      &triton::ast::AstContext::lnot)
+          .def("string",    &triton::ast::AstContext::string)
+          .def("sx",        &triton::ast::AstContext::sx)
+          .def("zx",        &triton::ast::AstContext::zx)
+
+          .def("bv",
+            [] (triton::ast::AstContext& self, pybind11::object value, triton::uint32 size) {
+              return self.bv(PyLong_AsUint512(value.ptr()), size);
+            })
+
+          .def("bvrol",
+            [] (triton::ast::AstContext& self, const triton::ast::SharedAbstractNode& node, triton::uint32 rot) {
+              return self.bvrol(node, rot);
+            })
+
+          .def("bvrol",
+            [] (triton::ast::AstContext& self, const triton::ast::SharedAbstractNode& node1, const triton::ast::SharedAbstractNode& node2) {
+              return self.bvrol(node1, node2);
+            })
+
+          .def("bvror",
+            [] (triton::ast::AstContext& self, const triton::ast::SharedAbstractNode& node, triton::uint32 rot) {
+              return self.bvror(node, rot);
+            })
+
+          .def("bvror",
+            [] (triton::ast::AstContext& self, const triton::ast::SharedAbstractNode& node1, const triton::ast::SharedAbstractNode& node2) {
+              return self.bvror(node1, node2);
+            })
+
+          .def("compound",
+            [] (triton::ast::AstContext& self, const std::list<triton::ast::SharedAbstractNode>& nodes) {
+              return self.compound(nodes);
+            })
+
+          .def("concat",
+            [] (triton::ast::AstContext& self, const std::list<triton::ast::SharedAbstractNode>& nodes) {
+              return self.concat(nodes);
+            })
+
+          .def("land",
+            [] (triton::ast::AstContext& self, const triton::ast::SharedAbstractNode& node1, const triton::ast::SharedAbstractNode& node2) {
+              return self.land(node1, node2);
+            })
+
+          .def("land",
+            [] (triton::ast::AstContext& self, const std::list<triton::ast::SharedAbstractNode>& nodes) {
+              return self.land(nodes);
+            })
+
+          .def("lor",
+            [] (triton::ast::AstContext& self, const triton::ast::SharedAbstractNode& node1, const triton::ast::SharedAbstractNode& node2) {
+              return self.lor(node1, node2);
+            })
+
+          .def("lor",
+            [] (triton::ast::AstContext& self, const std::list<triton::ast::SharedAbstractNode>& nodes) {
+              return self.lor(nodes);
+            })
+
+          .def("variable",
+            [] (triton::ast::AstContext& self, const triton::engines::symbolic::SharedSymbolicVariable& var) {
+              return self.variable(var);
+            })
+
+          .def("reference",
+            [] (triton::ast::AstContext& self, const triton::engines::symbolic::SharedSymbolicExpression& expr) {
+              return self.reference(expr);
+            })
+
+          .def("duplicate",
+            [] (triton::ast::AstContext& self, const triton::ast::SharedAbstractNode& node) {
+              return triton::ast::newInstance(node.get());
+            })
+
+          .def("lookingForNodes",
+            [] (triton::ast::AstContext& self, const triton::ast::SharedAbstractNode& node, triton::ast::ast_e match) {
+              return triton::ast::lookingForNodes(node, match);
+            })
+
+          // TODO
+          //#ifdef Z3_INTERFACE
+          //.def("tritonToZ3",
+          //  [] (triton::ast::AstContext& self, const triton::ast::SharedAbstractNode& node) {
+          //    triton::ast::TritonToZ3Ast tritonToZ3Ast{false};
+
+          //    pybind11::object pyz3 = pybind11::module::import("z3");
+
+          //    PyObject* z3MainCtx = PyObject_CallObject(PyObject_GetAttrString(pyz3.ptr(), "main_ctx"), nullptr);
+          //    PyObject* z3CtxPtr  = PyObject_GetAttrString(PyObject_GetAttrString(z3MainCtx, "ctx"), "value");
+          //    Z3_context z3Ctx    = reinterpret_cast<Z3_context>(PyLong_AsVoidPtr(z3CtxPtr));
+          //    Py_DECREF(z3CtxPtr);
+          //    Py_DECREF(z3MainCtx);
+
+          //    z3::expr expr = tritonToZ3Ast.convert(node);
+          //    Z3_ast ast    = Z3_translate(expr.ctx(), expr, z3Ctx);
+
+          //    PyObject* pyArgs = Py_BuildValue("(O)", PyLong_FromVoidPtr(ast));
+          //    PyObject* retAst = PyObject_CallObject(PyObject_GetAttrString(pyz3.ptr(), "c_void_p"), pyArgs);
+          //    PyObject_SetAttrString(retAst, "__class__", PyObject_GetAttrString(pyz3.ptr(), "Ast"));
+          //    Py_DECREF(pyArgs);
+
+          //    PyObject* z3ExprRef = PyObject_GetAttrString(pyz3.ptr(), "ExprRef");
+          //    pyArgs = Py_BuildValue("(O)", retAst);
+          //    PyObject* retExpr = PyInstance_New(z3ExprRef, pyArgs, nullptr);
+          //    Py_DECREF(pyArgs);
+          //    Py_DECREF(retAst);
+          //    Py_DECREF(z3ExprRef);
+
+          //    return retExpr;
+          //  })
+          //#endif
+
+          .def("unrollAst",
+            [] (triton::ast::AstContext& self, const triton::ast::SharedAbstractNode& node) {
+              return triton::ast::unrollAst(node);
+            });
       }
 
     }; /* python namespace */

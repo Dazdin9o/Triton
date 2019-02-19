@@ -5,10 +5,7 @@
 **  This program is under the terms of the BSD License.
 */
 
-#include <triton/pythonObjects.hpp>
-#include <triton/pythonUtils.hpp>
-#include <triton/pythonXFunctions.hpp>
-#include <triton/exceptions.hpp>
+#include <triton/pythonBindings.hpp>
 #include <triton/register.hpp>
 
 
@@ -131,286 +128,39 @@ namespace triton {
   namespace bindings {
     namespace python {
 
-      //! Register destructor.
-      void Register_dealloc(PyObject* self) {
-        std::cout << std::flush;
-        delete PyRegister_AsRegister(self);
-        Py_TYPE(self)->tp_free((PyObject*)self);
-      }
+      void initRegisterObject(pybind11::module& pyTriton) {
+        pybind11::class_<triton::arch::Register>(pyTriton, "Register", "The Register class")
 
+          .def("getBitSize",                &triton::arch::Register::getBitSize)
+          .def("getExtendSize",             &triton::arch::Register::getExtendSize)
+          .def("getExtendType",             &triton::arch::Register::getExtendType)
+          .def("getId",                     &triton::arch::Register::getId)
+          .def("getName",                   &triton::arch::Register::getName)
+          .def("getShiftType",              &triton::arch::Register::getShiftType)
+          .def("getShiftValue",             &triton::arch::Register::getShiftValue)
+          .def("getSize",                   &triton::arch::Register::getSize)
+          .def("getType",                   &triton::arch::Register::getType)
+          .def("isMutable",                 &triton::arch::Register::isMutable)
+          .def("isOverlapWith",             &triton::arch::Register::isOverlapWith)
 
-      static PyObject* Register_getBitSize(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PyRegister_AsRegister(self)->getBitSize());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
+          .def("getBitvector",
+            [] (const triton::arch::Register& self) -> triton::arch::BitsVector {
+              return static_cast<triton::arch::BitsVector>(self);
+            })
 
+          .def("__repr__",
+            [] (const triton::arch::Register& reg) {
+              std::ostringstream stream;
+              stream << reg;
+              return stream.str();
+            })
 
-      static PyObject* Register_getBitvector(PyObject* self, PyObject* noarg) {
-        try {
-          return PyBitsVector(*PyRegister_AsRegister(self));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Register_getExtendSize(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PyRegister_AsRegister(self)->getExtendSize());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Register_getExtendType(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PyRegister_AsRegister(self)->getExtendType());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Register_getId(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PyRegister_AsRegister(self)->getId());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Register_getName(PyObject* self, PyObject* noarg) {
-        try {
-          return Py_BuildValue("s", PyRegister_AsRegister(self)->getName().c_str());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Register_getShiftType(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PyRegister_AsRegister(self)->getShiftType());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Register_getShiftValue(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint64(PyRegister_AsRegister(self)->getShiftValue());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Register_getSize(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PyRegister_AsRegister(self)->getSize());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Register_getType(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PyRegister_AsRegister(self)->getType());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Register_isMutable(PyObject* self, PyObject* noarg) {
-        try {
-          if (PyRegister_AsRegister(self)->isMutable())
-            Py_RETURN_TRUE;
-          Py_RETURN_FALSE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Register_isOverlapWith(PyObject* self, PyObject* reg2) {
-        try {
-          triton::arch::Register* reg1;
-
-          if (!PyRegister_Check(reg2))
-            return PyErr_Format(PyExc_TypeError, "Register::isOverlapWith(): Expected a Register as argument.");
-
-          reg1 = PyRegister_AsRegister(self);
-          if (reg1->isOverlapWith(*PyRegister_AsRegister(reg2)))
-            Py_RETURN_TRUE;
-          Py_RETURN_FALSE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static int Register_print(PyObject* self) {
-        std::cout << PyRegister_AsRegister(self);
-        return 0;
-      }
-
-
-      static long Register_hash(PyObject* self) {
-        return PyRegister_AsRegister(self)->getId();
-      }
-
-
-      static PyObject* Register_str(PyObject* self) {
-        try {
-          std::stringstream str;
-          str << PyRegister_AsRegister(self);
-          return PyString_FromFormat("%s", str.str().c_str());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Register_richcompare(PyObject* self, PyObject* other, int op) {
-        PyObject* result    = nullptr;
-        triton::uint32 id1  = 0;
-        triton::uint32 id2  = 0;
-
-        if (!PyRegister_Check(other)) {
-          result = Py_NotImplemented;
-        }
-
-        else {
-          id1 = PyRegister_AsRegister(self)->getId();
-          id2 = PyRegister_AsRegister(other)->getId();
-
-          switch (op) {
-            case Py_LT:
-                result = (id1 <  id2) ? Py_True : Py_False;
-                break;
-            case Py_LE:
-                result = (id1 <= id2) ? Py_True : Py_False;
-                break;
-            case Py_EQ:
-                result = (id1 == id2) ? Py_True : Py_False;
-                break;
-            case Py_NE:
-                result = (id1 != id2) ? Py_True : Py_False;
-                break;
-            case Py_GT:
-                result = (id1 >  id2) ? Py_True : Py_False;
-                break;
-            case Py_GE:
-                result = (id1 >= id2) ? Py_True : Py_False;
-                break;
-          }
-        }
-
-        Py_INCREF(result);
-        return result;
-      }
-
-
-      //! Register methods.
-      PyMethodDef Register_callbacks[] = {
-        {"getBitSize",        Register_getBitSize,       METH_NOARGS,    ""},
-        {"getBitvector",      Register_getBitvector,     METH_NOARGS,    ""},
-        {"getExtendSize",     Register_getExtendSize,    METH_NOARGS,    ""},
-        {"getExtendType",     Register_getExtendType,    METH_NOARGS,    ""},
-        {"getId",             Register_getId,            METH_NOARGS,    ""},
-        {"getName",           Register_getName,          METH_NOARGS,    ""},
-        {"getShiftType",      Register_getShiftType,     METH_NOARGS,    ""},
-        {"getShiftValue",     Register_getShiftValue,    METH_NOARGS,    ""},
-        {"getSize",           Register_getSize,          METH_NOARGS,    ""},
-        {"getType",           Register_getType,          METH_NOARGS,    ""},
-        {"isMutable",         Register_isMutable,        METH_NOARGS,    ""},
-        {"isOverlapWith",     Register_isOverlapWith,    METH_O,         ""},
-        {nullptr,             nullptr,                   0,              nullptr}
-      };
-
-
-      PyTypeObject Register_Type = {
-        PyObject_HEAD_INIT(&PyType_Type)
-        0,                                          /* ob_size */
-        "Register",                                 /* tp_name */
-        sizeof(Register_Object),                    /* tp_basicsize */
-        0,                                          /* tp_itemsize */
-        (destructor)Register_dealloc,               /* tp_dealloc */
-        (printfunc)Register_print,                  /* tp_print */
-        0,                                          /* tp_getattr */
-        0,                                          /* tp_setattr */
-        0,                                          /* tp_compare */
-        0,                                          /* tp_repr */
-        0,                                          /* tp_as_number */
-        0,                                          /* tp_as_sequence */
-        0,                                          /* tp_as_mapping */
-        (hashfunc)Register_hash,                    /* tp_hash */
-        0,                                          /* tp_call */
-        (reprfunc)Register_str,                     /* tp_str */
-        0,                                          /* tp_getattro */
-        0,                                          /* tp_setattro */
-        0,                                          /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT,                         /* tp_flags */
-        "Register objects",                         /* tp_doc */
-        0,                                          /* tp_traverse */
-        0,                                          /* tp_clear */
-        (richcmpfunc)Register_richcompare,          /* tp_richcompare */
-        0,                                          /* tp_weaklistoffset */
-        0,                                          /* tp_iter */
-        0,                                          /* tp_iternext */
-        Register_callbacks,                         /* tp_methods */
-        0,                                          /* tp_members */
-        0,                                          /* tp_getset */
-        0,                                          /* tp_base */
-        0,                                          /* tp_dict */
-        0,                                          /* tp_descr_get */
-        0,                                          /* tp_descr_set */
-        0,                                          /* tp_dictoffset */
-        0,                                          /* tp_init */
-        0,                                          /* tp_alloc */
-        0,                                          /* tp_new */
-        0,                                          /* tp_free */
-        0,                                          /* tp_is_gc */
-        0,                                          /* tp_bases */
-        0,                                          /* tp_mro */
-        0,                                          /* tp_cache */
-        0,                                          /* tp_subclasses */
-        0,                                          /* tp_weaklist */
-        (destructor)Register_dealloc,               /* tp_del */
-        0                                           /* tp_version_tag */
-      };
-
-
-      PyObject* PyRegister(const triton::arch::Register& reg) {
-        Register_Object* object;
-
-        PyType_Ready(&Register_Type);
-        object = PyObject_NEW(Register_Object, &Register_Type);
-        if (object != NULL)
-          object->reg = new triton::arch::Register(reg);
-
-        return (PyObject*)object;
+          .def("__str__",
+            [] (const triton::arch::Register& reg) {
+              std::ostringstream stream;
+              stream << reg;
+              return stream.str();
+            });
       }
 
     }; /* python namespace */

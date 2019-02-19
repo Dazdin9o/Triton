@@ -5,12 +5,13 @@
 **  This program is under the terms of the BSD License.
 */
 
-#include <triton/pythonObjects.hpp>
+#include <triton/pythonBindings.hpp>
 #include <triton/pythonUtils.hpp>
-#include <triton/pythonXFunctions.hpp>
 #include <triton/ast.hpp>
 #include <triton/astContext.hpp>
 #include <triton/exceptions.hpp>
+#include <triton/symbolicExpression.hpp>
+#include <triton/symbolicVariable.hpp>
 
 
 
@@ -139,608 +140,451 @@ namespace triton {
   namespace bindings {
     namespace python {
 
-      //! AstNode destructor.
-      void AstNode_dealloc(PyObject* self) {
-        std::cout << std::flush;
-        PyAstNode_AsAstNode(self) = nullptr; // decref the shared_ptr
-        Py_TYPE(self)->tp_free((PyObject*)self);
-      }
-
-
-      static PyObject* AstNode_equalTo(PyObject* self, PyObject* other) {
-        try {
-          if (other == nullptr || !PyAstNode_Check(other))
-            return PyErr_Format(PyExc_TypeError, "AstNode::equalTo(): Expected a AstNode as argument.");
-
-          if (PyAstNode_AsAstNode(self)->equalTo(PyAstNode_AsAstNode(other)))
-            Py_RETURN_TRUE;
-
-          Py_RETURN_FALSE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_evaluate(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint512(PyAstNode_AsAstNode(self)->evaluate());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_getBitvectorMask(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint512(PyAstNode_AsAstNode(self)->getBitvectorMask());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_getBitvectorSize(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PyAstNode_AsAstNode(self)->getBitvectorSize());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_getChildren(PyObject* self, PyObject* noarg) {
-        try {
-          PyObject* children;
-          triton::ast::SharedAbstractNode node = PyAstNode_AsAstNode(self);
-
-          triton::usize size = node->getChildren().size();
-          children = xPyList_New(size);
-          for (triton::usize index = 0; index < size; index++)
-            PyList_SetItem(children, index, PyAstNode(node->getChildren()[index]));
-
-          return children;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_getHash(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint512(PyAstNode_AsAstNode(self)->hash(1));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_getInteger(PyObject* self, PyObject* noarg) {
-        triton::ast::SharedAbstractNode node = PyAstNode_AsAstNode(self);
-
-        if (node->getType() != triton::ast::INTEGER_NODE)
-          return PyErr_Format(PyExc_TypeError, "AstNode::getInteger(): Only available on INTEGER_NODE type.");
-
-        try {
-          return PyLong_FromUint512(reinterpret_cast<triton::ast::IntegerNode*>(node.get())->getInteger());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_getParents(PyObject* self, PyObject* noarg) {
-        try {
-          PyObject* ret = nullptr;
-          auto parents = PyAstNode_AsAstNode(self)->getParents();
-          ret = xPyList_New(parents.size());
-          triton::uint32 index = 0;
-          for (auto& sp : parents)
-            PyList_SetItem(ret, index++, PyAstNode(sp));
-          return ret;
-          }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_getString(PyObject* self, PyObject* noarg) {
-        triton::ast::SharedAbstractNode node = PyAstNode_AsAstNode(self);
-
-        if (node->getType() != triton::ast::STRING_NODE)
-          return PyErr_Format(PyExc_TypeError, "AstNode::getString(): Only available on STRING_NODE type.");
-
-        try {
-          return Py_BuildValue("s", reinterpret_cast<triton::ast::StringNode*>(node.get())->getString().c_str());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_getSymbolicExpression(PyObject* self, PyObject* noarg) {
-        triton::ast::SharedAbstractNode node = PyAstNode_AsAstNode(self);
-
-        if (node->getType() != triton::ast::REFERENCE_NODE)
-          return PyErr_Format(PyExc_TypeError, "AstNode::getSymbolicExpression(): Only available on REFERENCE_NODE type.");
-
-        try {
-          return PySymbolicExpression(reinterpret_cast<triton::ast::ReferenceNode*>(node.get())->getSymbolicExpression());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_getSymbolicVariable(PyObject* self, PyObject* noarg) {
-        triton::ast::SharedAbstractNode node = PyAstNode_AsAstNode(self);
-
-        if (node->getType() != triton::ast::VARIABLE_NODE)
-          return PyErr_Format(PyExc_TypeError, "AstNode::getSymbolicVariable(): Only available on VARIABLE_NODE type.");
-
-        try {
-          return PySymbolicVariable(reinterpret_cast<triton::ast::VariableNode*>(node.get())->getSymbolicVariable());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_getType(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PyAstNode_AsAstNode(self)->getType());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_isLogical(PyObject* self, PyObject* noarg) {
-        try {
-          if (PyAstNode_AsAstNode(self)->isLogical())
-            Py_RETURN_TRUE;
-          Py_RETURN_FALSE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_isSigned(PyObject* self, PyObject* noarg) {
-        try {
-          if (PyAstNode_AsAstNode(self)->isSigned())
-            Py_RETURN_TRUE;
-          Py_RETURN_FALSE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_isSymbolized(PyObject* self, PyObject* noarg) {
-        try {
-          if (PyAstNode_AsAstNode(self)->isSymbolized())
-            Py_RETURN_TRUE;
-          Py_RETURN_FALSE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_setChild(PyObject* self, PyObject* args) {
-        try {
-          PyObject* index = nullptr;
-          PyObject* node = nullptr;
-          triton::uint32 idx;
-          triton::ast::SharedAbstractNode dst, src;
-
-          PyArg_ParseTuple(args, "|OO", &index, &node);
-
-          if (index == nullptr || (!PyLong_Check(index) && !PyInt_Check(index)))
-            return PyErr_Format(PyExc_TypeError, "AstNode::setChild(): Expected an index (integer) as first argument.");
-
-          if (node == nullptr || !PyAstNode_Check(node))
-            return PyErr_Format(PyExc_TypeError, "AstNode::setChild(): Expected a AstNode as second argument.");
-
-          idx = PyLong_AsUint32(index);
-          src = PyAstNode_AsAstNode(node);
-          dst = PyAstNode_AsAstNode(self);
-          dst->setChild(idx, src);
-          dst->init();
-
-          Py_RETURN_TRUE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static int AstNode_print(PyObject* self) {
-        std::cout << PyAstNode_AsAstNode(self);
-        return 0;
-      }
-
-
-      static int AstNode_cmp(AstNode_Object* a, AstNode_Object* b) {
-        return !(a->node->hash(1) == b->node->hash(1));
-      }
-
-
-      static PyObject* AstNode_str(PyObject* self) {
-        try {
-          std::stringstream str;
-          str << PyAstNode_AsAstNode(self);
-          return PyString_FromFormat("%s", str.str().c_str());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_operatorAdd(PyObject* self, PyObject* other) {
-        try {
-          if (!PyAstNode_Check(self) || !PyAstNode_Check(other))
-            return PyErr_Format(PyExc_TypeError, "AstNode::operatorAdd(): Expected a AstNode as arguments.");
-          return PyAstNode(PyAstNode_AsAstNode(self)->getContext().bvadd(PyAstNode_AsAstNode(self), PyAstNode_AsAstNode(other)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_operatorSub(PyObject* self, PyObject* other) {
-        try {
-          if (!PyAstNode_Check(self) || !PyAstNode_Check(other))
-            return PyErr_Format(PyExc_TypeError, "AstNode::operatorSub(): Expected a AstNode as arguments.");
-          return PyAstNode(PyAstNode_AsAstNode(self)->getContext().bvsub(PyAstNode_AsAstNode(self), PyAstNode_AsAstNode(other)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_operatorMul(PyObject* self, PyObject* other) {
-        try {
-          if (!PyAstNode_Check(self) || !PyAstNode_Check(other))
-            return PyErr_Format(PyExc_TypeError, "AstNode::operatorMul(): Expected a AstNode as arguments.");
-          return PyAstNode(PyAstNode_AsAstNode(self)->getContext().bvmul(PyAstNode_AsAstNode(self), PyAstNode_AsAstNode(other)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_operatorDiv(PyObject* self, PyObject* other) {
-        try {
-          if (!PyAstNode_Check(self) || !PyAstNode_Check(other))
-            return PyErr_Format(PyExc_TypeError, "AstNode::operatorDiv(): Expected a AstNode as arguments.");
-          return PyAstNode(PyAstNode_AsAstNode(self)->getContext().bvudiv(PyAstNode_AsAstNode(self), PyAstNode_AsAstNode(other)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_operatorRem(PyObject* self, PyObject* other) {
-        try {
-          if (!PyAstNode_Check(self) || !PyAstNode_Check(other))
-            return PyErr_Format(PyExc_TypeError, "AstNode::operatorMod(): Expected a AstNode as arguments.");
-          return PyAstNode(PyAstNode_AsAstNode(self)->getContext().bvurem(PyAstNode_AsAstNode(self), PyAstNode_AsAstNode(other)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_operatorNeg(PyObject* node) {
-        try {
-          if (!PyAstNode_Check(node))
-            return PyErr_Format(PyExc_TypeError, "AstNode::operatorNeg(): Expected a AstNode as argument.");
-          return PyAstNode(PyAstNode_AsAstNode(node)->getContext().bvneg(PyAstNode_AsAstNode(node)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_operatorNot(PyObject* node) {
-        try {
-          if (!PyAstNode_Check(node))
-            return PyErr_Format(PyExc_TypeError, "AstNode::operatorNot(): Expected a AstNode as argument.");
-          return PyAstNode(PyAstNode_AsAstNode(node)->getContext().bvnot(PyAstNode_AsAstNode(node)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_operatorShl(PyObject* self, PyObject* other) {
-        try {
-          if (!PyAstNode_Check(self) || !PyAstNode_Check(other))
-            return PyErr_Format(PyExc_TypeError, "AstNode::operatorShl(): Expected a AstNode as arguments.");
-          return PyAstNode(PyAstNode_AsAstNode(self)->getContext().bvshl(PyAstNode_AsAstNode(self), PyAstNode_AsAstNode(other)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_operatorShr(PyObject* self, PyObject* other) {
-        try {
-          if (!PyAstNode_Check(self) || !PyAstNode_Check(other))
-            return PyErr_Format(PyExc_TypeError, "AstNode::operatorShr(): Expected a AstNode as arguments.");
-          return PyAstNode(PyAstNode_AsAstNode(self)->getContext().bvlshr(PyAstNode_AsAstNode(self), PyAstNode_AsAstNode(other)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_operatorAnd(PyObject* self, PyObject* other) {
-        try {
-          if (!PyAstNode_Check(self) || !PyAstNode_Check(other))
-            return PyErr_Format(PyExc_TypeError, "AstNode::operatorAnd(): Expected a AstNode as arguments.");
-          return PyAstNode(PyAstNode_AsAstNode(self)->getContext().bvand(PyAstNode_AsAstNode(self), PyAstNode_AsAstNode(other)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_operatorXor(PyObject* self, PyObject* other) {
-        try {
-          if (!PyAstNode_Check(self) || !PyAstNode_Check(other))
-            return PyErr_Format(PyExc_TypeError, "AstNode::operatorXor(): Expected a AstNode as arguments.");
-          return PyAstNode(PyAstNode_AsAstNode(self)->getContext().bvxor(PyAstNode_AsAstNode(self), PyAstNode_AsAstNode(other)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* AstNode_operatorOr(PyObject* self, PyObject* other) {
-        try {
-          if (!PyAstNode_Check(self) || !PyAstNode_Check(other))
-            return PyErr_Format(PyExc_TypeError, "AstNode::operatorOr(): Expected a AstNode as arguments.");
-          return PyAstNode(PyAstNode_AsAstNode(self)->getContext().bvor(PyAstNode_AsAstNode(self), PyAstNode_AsAstNode(other)));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static int AstNode_coerce(PyObject** self, PyObject** other) {
-        if (PyLong_Check(*other) || PyInt_Check(*other)) {
-          triton::uint512 value = PyLong_AsUint512(*other);
-          triton::uint32 size   = PyAstNode_AsAstNode(*self)->getBitvectorSize();
-          if (size) {
-            *other = PyAstNode(PyAstNode_AsAstNode(*self)->getContext().bv(value, size));
-            Py_INCREF(*self);
-            return 0;
-          }
-        }
-        return 1;
-      }
-
-
-      static PyObject* AstNode_richcompare(PyObject* self, PyObject* other, int op) {
-        PyObject* result = nullptr;
-
-        if (PyLong_Check(other) || PyInt_Check(other)) {
-          triton::uint512 value = PyLong_AsUint512(other);
-          triton::uint32 size   = PyAstNode_AsAstNode(self)->getBitvectorSize();
-          if (size)
-            other = PyAstNode(PyAstNode_AsAstNode(self)->getContext().bv(value, size));
-        }
-
-        if (!PyAstNode_Check(other)) {
-          result = Py_NotImplemented;
-        }
-
-        else {
-          auto node1 = PyAstNode_AsAstNode(self);
-          auto node2 = PyAstNode_AsAstNode(other);
-
-          switch (op) {
-            case Py_LT:
-                result = PyAstNode(node1->getContext().bvult(node1, node2));
-                break;
-            case Py_LE:
-                result = PyAstNode(node1->getContext().bvule(node1, node2));
-                break;
-            case Py_EQ:
-                result = PyAstNode(node1->getContext().equal(node1, node2));
-                break;
-            case Py_NE:
-                result = PyAstNode(node1->getContext().lnot(node1->getContext().equal(node1, node2)));
-                break;
-            case Py_GT:
-                result = PyAstNode(node1->getContext().bvugt(node1, node2));
-                break;
-            case Py_GE:
-                result = PyAstNode(node1->getContext().bvuge(node1, node2));
-                break;
-          }
-        }
-
-        Py_INCREF(result);
-        return result;
-      }
-
-
-      static PyObject* AstNode_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
-        return type->tp_alloc(type, 0);
-      }
-
-
-      static int AstNode_init(AstNode_Object* self, PyObject* args, PyObject* kwds) {
-        return 0;
-      }
-
-
-      //! AstNode methods.
-      PyMethodDef AstNode_callbacks[] = {
-        {"equalTo",                 AstNode_equalTo,                METH_O,          ""},
-        {"evaluate",                AstNode_evaluate,               METH_NOARGS,     ""},
-        {"getBitvectorMask",        AstNode_getBitvectorMask,       METH_NOARGS,     ""},
-        {"getBitvectorSize",        AstNode_getBitvectorSize,       METH_NOARGS,     ""},
-        {"getChildren",             AstNode_getChildren,            METH_NOARGS,     ""},
-        {"getHash",                 AstNode_getHash,                METH_NOARGS,     ""},
-        {"getInteger",              AstNode_getInteger,             METH_NOARGS,     ""},
-        {"getParents",              AstNode_getParents,             METH_NOARGS,     ""},
-        {"getString",               AstNode_getString,              METH_NOARGS,     ""},
-        {"getSymbolicExpression",   AstNode_getSymbolicExpression,  METH_NOARGS,     ""},
-        {"getSymbolicVariable",     AstNode_getSymbolicVariable,    METH_NOARGS,     ""},
-        {"getType",                 AstNode_getType,                METH_NOARGS,     ""},
-        {"isLogical",               AstNode_isLogical,              METH_NOARGS,     ""},
-        {"isSigned",                AstNode_isSigned,               METH_NOARGS,     ""},
-        {"isSymbolized",            AstNode_isSymbolized,           METH_NOARGS,     ""},
-        {"setChild",                AstNode_setChild,               METH_VARARGS,    ""},
-        {nullptr,                   nullptr,                        0,               nullptr}
-      };
-
-
-      //! AstNode operator methods.
-      PyNumberMethods AstNode_NumberMethods = {
-        AstNode_operatorAdd,                        /* nb_add */
-        AstNode_operatorSub,                        /* nb_subtract */
-        AstNode_operatorMul,                        /* nb_multiply */
-        AstNode_operatorDiv,                        /* nb_divide */
-        AstNode_operatorRem,                        /* nb_remainder */
-        0,                                          /* nb_divmod */
-        0,                                          /* nb_power */
-        AstNode_operatorNeg,                        /* nb_negative */
-        0,                                          /* nb_positive */
-        0,                                          /* nb_absolute */
-        0,                                          /* nb_nonzero */
-        AstNode_operatorNot,                        /* nb_invert */
-        AstNode_operatorShl,                        /* nb_lshift */
-        AstNode_operatorShr,                        /* nb_rshift */
-        AstNode_operatorAnd,                        /* nb_and */
-        AstNode_operatorXor,                        /* nb_xor */
-        AstNode_operatorOr,                         /* nb_or */
-        AstNode_coerce,                             /* nb_coerce */
-        0,                                          /* nb_int */
-        0,                                          /* nb_long */
-        0,                                          /* nb_float */
-        0,                                          /* nb_oct */
-        0,                                          /* nb_hex */
-        AstNode_operatorAdd,                        /* nb_inplace_add */
-        AstNode_operatorSub,                        /* nb_inplace_subtract */
-        AstNode_operatorMul,                        /* nb_inplace_multiply */
-        AstNode_operatorDiv,                        /* nb_inplace_divide */
-        AstNode_operatorRem,                        /* nb_inplace_remainder */
-        0,                                          /* nb_inplace_power */
-        AstNode_operatorShl,                        /* nb_inplace_lshift */
-        AstNode_operatorShr,                        /* nb_inplace_rshift */
-        AstNode_operatorAnd,                        /* nb_inplace_and */
-        AstNode_operatorXor,                        /* nb_inplace_xor */
-        AstNode_operatorOr,                         /* nb_inplace_or */
-        0,                                          /* nb_floor_divide */
-        0,                                          /* nb_true_divide */
-        0,                                          /* nb_inplace_floor_divide */
-        0,                                          /* nb_inplace_true_divide */
-        0,                                          /* nb_index */
-      };
-
-
-      PyTypeObject AstNode_Type = {
-        PyObject_HEAD_INIT(&PyType_Type)
-        0,                                          /* ob_size */
-        "AstNode",                                  /* tp_name */
-        sizeof(AstNode_Object),                     /* tp_basicsize */
-        0,                                          /* tp_itemsize */
-        (destructor)AstNode_dealloc,                /* tp_dealloc */
-        (printfunc)AstNode_print,                   /* tp_print */
-        0,                                          /* tp_getattr */
-        0,                                          /* tp_setattr */
-        (cmpfunc)AstNode_cmp,                       /* tp_compare */
-        0,                                          /* tp_repr */
-        &AstNode_NumberMethods,                     /* tp_as_number */
-        0,                                          /* tp_as_sequence */
-        0,                                          /* tp_as_mapping */
-        0,                                          /* tp_hash */
-        0,                                          /* tp_call*/
-        (reprfunc)AstNode_str,                      /* tp_str */
-        0,                                          /* tp_getattro */
-        0,                                          /* tp_setattro */
-        0,                                          /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT,                         /* tp_flags */
-        "AstNode objects",                          /* tp_doc */
-        0,                                          /* tp_traverse */
-        0,                                          /* tp_clear */
-        (richcmpfunc)AstNode_richcompare,           /* tp_richcompare */
-        0,                                          /* tp_weaklistoffset */
-        0,                                          /* tp_iter */
-        0,                                          /* tp_iternext */
-        AstNode_callbacks,                          /* tp_methods */
-        0,                                          /* tp_members */
-        0,                                          /* tp_getset */
-        0,                                          /* tp_base */
-        0,                                          /* tp_dict */
-        0,                                          /* tp_descr_get */
-        0,                                          /* tp_descr_set */
-        0,                                          /* tp_dictoffset */
-        (initproc)AstNode_init,                     /* tp_init */
-        0,                                          /* tp_alloc */
-        (newfunc)AstNode_new,                       /* tp_new */
-        0,                                          /* tp_free */
-        0,                                          /* tp_is_gc */
-        0,                                          /* tp_bases */
-        0,                                          /* tp_mro */
-        0,                                          /* tp_cache */
-        0,                                          /* tp_subclasses */
-        0,                                          /* tp_weaklist */
-        (destructor)AstNode_dealloc,                /* tp_del */
-        0                                           /* tp_version_tag */
-      };
-
-
-      PyObject* PyAstNode(const triton::ast::SharedAbstractNode& node) {
-        if (node == nullptr) {
-          Py_INCREF(Py_None);
-          return Py_None;
-        }
-
-        PyType_Ready(&AstNode_Type);
-        // Build the new object the python way (calling operator() on the type) as
-        // it crash otherwise (certainly due to incorrect shared_ptr initialization).
-        auto* object = (triton::bindings::python::AstNode_Object*)PyObject_CallObject((PyObject*) &AstNode_Type, nullptr);
-        if (object != NULL) {
-          object->node = node;
-        }
-
-        return (PyObject*)object;
+      void initAstNodeObject(pybind11::module& pyTriton) {
+        pybind11::class_<triton::ast::AbstractNode, triton::ast::SharedAbstractNode>(pyTriton, "SharedAbstractNode", "The SharedAbstractNode class")
+
+          .def("equalTo",               &triton::ast::AbstractNode::equalTo)
+          .def("getBitvectorSize",      &triton::ast::AbstractNode::getBitvectorSize)
+          .def("getChildren",           &triton::ast::AbstractNode::getChildren)
+          .def("getParents",            &triton::ast::AbstractNode::getParents)
+          .def("getType",               &triton::ast::AbstractNode::getType)
+          .def("isLogical",             &triton::ast::AbstractNode::isLogical)
+          .def("isSigned",              &triton::ast::AbstractNode::isSigned)
+          .def("isSymbolized",          &triton::ast::AbstractNode::isSymbolized)
+          .def("setChild",              &triton::ast::AbstractNode::setChild)
+
+          .def("evaluate",
+            [] (const triton::ast::SharedAbstractNode& self) -> pybind11::object {
+              return pybind11::reinterpret_borrow<pybind11::object>(PyLong_FromUint512(self->evaluate()));
+            })
+
+          .def("getBitvectorMask",
+            [] (const triton::ast::SharedAbstractNode& self) -> pybind11::object {
+              return pybind11::reinterpret_borrow<pybind11::object>(PyLong_FromUint512(self->getBitvectorMask()));
+            })
+
+          .def("getHash",
+            [] (const triton::ast::SharedAbstractNode& self) -> pybind11::object {
+              return pybind11::reinterpret_borrow<pybind11::object>(PyLong_FromUint512(self->hash(1)));
+            })
+
+          .def("getInteger",
+            [] (const triton::ast::SharedAbstractNode& self) -> pybind11::object {
+              if (self->getType() != triton::ast::INTEGER_NODE)
+                throw triton::exceptions::Ast("AbstractNode::getInteger(): Only available on INTEGER_NODE type.");
+
+              triton::uint512 value = reinterpret_cast<triton::ast::IntegerNode*>(self.get())->getInteger();
+              return pybind11::reinterpret_borrow<pybind11::object>(PyLong_FromUint512(value));
+            })
+
+          .def("getString",
+            [] (const triton::ast::SharedAbstractNode& self) -> pybind11::object {
+              if (self->getType() != triton::ast::STRING_NODE)
+                throw triton::exceptions::Ast("AbstractNode::getString(): Only available on STRING_NODE type.");
+
+              std::string s = reinterpret_cast<triton::ast::StringNode*>(self.get())->getString();
+              return pybind11::cast(s);
+            })
+
+          .def("getSymbolicExpression",
+            [] (const triton::ast::SharedAbstractNode& self) -> pybind11::object {
+              if (self->getType() != triton::ast::REFERENCE_NODE)
+                throw triton::exceptions::Ast("AbstractNode::getSymbolicExpression(): Only available on REFERENCE_NODE type.");
+
+              auto expr = reinterpret_cast<triton::ast::ReferenceNode*>(self.get())->getSymbolicExpression();
+              return pybind11::cast(expr);
+            })
+
+          .def("getSymbolicVariable",
+            [] (const triton::ast::SharedAbstractNode& self) -> pybind11::object {
+              if (self->getType() != triton::ast::VARIABLE_NODE)
+                throw triton::exceptions::Ast("AbstractNode::getSymbolicVariable(): Only available on VARIABLE_NODE type.");
+
+              auto var = reinterpret_cast<triton::ast::VariableNode*>(self.get())->getSymbolicVariable();
+              return pybind11::cast(var);
+            })
+
+          .def("__repr__",
+            [] (const triton::ast::SharedAbstractNode& node) {
+              std::ostringstream stream;
+              stream << node.get();
+              return stream.str();
+            })
+
+          .def("__str__",
+            [] (const triton::ast::SharedAbstractNode& node) {
+              std::ostringstream stream;
+              stream << node.get();
+              return stream.str();
+            })
+
+          /* Operators ******************************************************/
+
+          .def("__add__",
+            [](const triton::ast::SharedAbstractNode& node1, const triton::ast::SharedAbstractNode& node2) {
+              triton::ast::AstContext& ast = node1->getContext();
+              return ast.bvadd(node1, node2);
+            }, pybind11::is_operator())
+
+          .def("__add__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvadd(node, ast.bv(value, node->getBitvectorSize()));
+            }, pybind11::is_operator())
+
+          .def("__radd__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvadd(ast.bv(value, node->getBitvectorSize()), node);
+            }, pybind11::is_operator())
+
+          /******************************************************************/
+
+          .def("__and__",
+            [](const triton::ast::SharedAbstractNode& node1, const triton::ast::SharedAbstractNode& node2) {
+              triton::ast::AstContext& ast = node1->getContext();
+              return ast.bvand(node1, node2);
+            }, pybind11::is_operator())
+
+          .def("__and__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvand(node, ast.bv(value, node->getBitvectorSize()));
+            }, pybind11::is_operator())
+
+          .def("__rand__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvand(ast.bv(value, node->getBitvectorSize()), node);
+            }, pybind11::is_operator())
+
+          /******************************************************************/
+
+          .def("__div__",
+            [](const triton::ast::SharedAbstractNode& node1, const triton::ast::SharedAbstractNode& node2) {
+              triton::ast::AstContext& ast = node1->getContext();
+              return ast.bvudiv(node1, node2);
+            }, pybind11::is_operator())
+
+          .def("__div__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvudiv(node, ast.bv(value, node->getBitvectorSize()));
+            }, pybind11::is_operator())
+
+          .def("__rdiv__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvudiv(ast.bv(value, node->getBitvectorSize()), node);
+            }, pybind11::is_operator())
+
+          /******************************************************************/
+
+          .def("__mul__",
+            [](const triton::ast::SharedAbstractNode& node1, const triton::ast::SharedAbstractNode& node2) {
+              triton::ast::AstContext& ast = node1->getContext();
+              return ast.bvmul(node1, node2);
+            }, pybind11::is_operator())
+
+          .def("__mul__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvmul(node, ast.bv(value, node->getBitvectorSize()));
+            }, pybind11::is_operator())
+
+          .def("__rmul__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvmul(ast.bv(value, node->getBitvectorSize()), node);
+            }, pybind11::is_operator())
+
+          /******************************************************************/
+
+          .def("__neg__",
+            [](const triton::ast::SharedAbstractNode& node) {
+              triton::ast::AstContext& ast = node->getContext();
+              return ast.bvneg(node);
+            }, pybind11::is_operator())
+
+          /******************************************************************/
+
+          .def("__invert__",
+            [](const triton::ast::SharedAbstractNode& node) {
+              triton::ast::AstContext& ast = node->getContext();
+              return ast.bvnot(node);
+            }, pybind11::is_operator())
+
+          /******************************************************************/
+
+          .def("__or__",
+            [](const triton::ast::SharedAbstractNode& node1, const triton::ast::SharedAbstractNode& node2) {
+              triton::ast::AstContext& ast = node1->getContext();
+              return ast.bvor(node1, node2);
+            }, pybind11::is_operator())
+
+          .def("__or__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvor(node, ast.bv(value, node->getBitvectorSize()));
+            }, pybind11::is_operator())
+
+          .def("__ror__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvor(ast.bv(value, node->getBitvectorSize()), node);
+            }, pybind11::is_operator())
+
+          /******************************************************************/
+
+          .def("__mod__",
+            [](const triton::ast::SharedAbstractNode& node1, const triton::ast::SharedAbstractNode& node2) {
+              triton::ast::AstContext& ast = node1->getContext();
+              return ast.bvurem(node1, node2);
+            }, pybind11::is_operator())
+
+          .def("__mod__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvurem(node, ast.bv(value, node->getBitvectorSize()));
+            }, pybind11::is_operator())
+
+          .def("__rmod__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvurem(ast.bv(value, node->getBitvectorSize()), node);
+            }, pybind11::is_operator())
+
+          /******************************************************************/
+
+          .def("__lshift__",
+            [](const triton::ast::SharedAbstractNode& node1, const triton::ast::SharedAbstractNode& node2) {
+              triton::ast::AstContext& ast = node1->getContext();
+              return ast.bvshl(node1, node2);
+            }, pybind11::is_operator())
+
+          .def("__lshift__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvshl(node, ast.bv(value, node->getBitvectorSize()));
+            }, pybind11::is_operator())
+
+          .def("__rlshift__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvshl(ast.bv(value, node->getBitvectorSize()), node);
+            }, pybind11::is_operator())
+
+          /******************************************************************/
+
+          .def("__rshift__",
+            [](const triton::ast::SharedAbstractNode& node1, const triton::ast::SharedAbstractNode& node2) {
+              triton::ast::AstContext& ast = node1->getContext();
+              return ast.bvlshr(node1, node2);
+            }, pybind11::is_operator())
+
+          .def("__rshift__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvlshr(node, ast.bv(value, node->getBitvectorSize()));
+            }, pybind11::is_operator())
+
+          .def("__rrshift__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvlshr(ast.bv(value, node->getBitvectorSize()), node);
+            }, pybind11::is_operator())
+
+          /******************************************************************/
+
+          .def("__sub__",
+            [](const triton::ast::SharedAbstractNode& node1, const triton::ast::SharedAbstractNode& node2) {
+              triton::ast::AstContext& ast = node1->getContext();
+              return ast.bvsub(node1, node2);
+            }, pybind11::is_operator())
+
+          .def("__sub__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvsub(node, ast.bv(value, node->getBitvectorSize()));
+            }, pybind11::is_operator())
+
+          .def("__rsub__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvsub(ast.bv(value, node->getBitvectorSize()), node);
+            }, pybind11::is_operator())
+
+          /******************************************************************/
+
+          .def("__xor__",
+            [](const triton::ast::SharedAbstractNode& node1, const triton::ast::SharedAbstractNode& node2) {
+              triton::ast::AstContext& ast = node1->getContext();
+              return ast.bvxor(node1, node2);
+            }, pybind11::is_operator())
+
+          .def("__xor__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvxor(node, ast.bv(value, node->getBitvectorSize()));
+            }, pybind11::is_operator())
+
+          .def("__rxor__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvxor(ast.bv(value, node->getBitvectorSize()), node);
+            }, pybind11::is_operator())
+
+          /******************************************************************/
+
+          .def("__lt__",
+            [](const triton::ast::SharedAbstractNode& node1, const triton::ast::SharedAbstractNode& node2) {
+              triton::ast::AstContext& ast = node1->getContext();
+              return ast.bvult(node1, node2);
+            }, pybind11::is_operator())
+
+          .def("__lt__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvult(node, ast.bv(value, node->getBitvectorSize()));
+            }, pybind11::is_operator())
+
+          .def("__rlt__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvult(node, ast.bv(value, node->getBitvectorSize()));
+            }, pybind11::is_operator())
+
+          /******************************************************************/
+
+          .def("__le__",
+            [](const triton::ast::SharedAbstractNode& node1, const triton::ast::SharedAbstractNode& node2) {
+              triton::ast::AstContext& ast = node1->getContext();
+              return ast.bvule(node1, node2);
+            }, pybind11::is_operator())
+
+          .def("__le__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvule(node, ast.bv(value, node->getBitvectorSize()));
+            }, pybind11::is_operator())
+
+          .def("__rle__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvule(node, ast.bv(value, node->getBitvectorSize()));
+            }, pybind11::is_operator())
+
+          /******************************************************************/
+
+          .def("__eq__",
+            [](const triton::ast::SharedAbstractNode& node1, const triton::ast::SharedAbstractNode& node2) {
+              triton::ast::AstContext& ast = node1->getContext();
+              return ast.equal(node1, node2);
+            }, pybind11::is_operator())
+
+          .def("__eq__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.equal(node, ast.bv(value, node->getBitvectorSize()));
+            }, pybind11::is_operator())
+
+          .def("__req__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.equal(node, ast.bv(value, node->getBitvectorSize()));
+            }, pybind11::is_operator())
+
+          /******************************************************************/
+
+          .def("__ne__",
+            [](const triton::ast::SharedAbstractNode& node1, const triton::ast::SharedAbstractNode& node2) {
+              triton::ast::AstContext& ast = node1->getContext();
+              return ast.lnot(ast.equal(node1, node2));
+            }, pybind11::is_operator())
+
+          .def("__ne__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.lnot(ast.equal(node, ast.bv(value, node->getBitvectorSize())));
+            }, pybind11::is_operator())
+
+          .def("__rne__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.lnot(ast.equal(node, ast.bv(value, node->getBitvectorSize())));
+            }, pybind11::is_operator())
+
+          /******************************************************************/
+
+          .def("__gt__",
+            [](const triton::ast::SharedAbstractNode& node1, const triton::ast::SharedAbstractNode& node2) {
+              triton::ast::AstContext& ast = node1->getContext();
+              return ast.bvugt(node1, node2);
+            }, pybind11::is_operator())
+
+          .def("__gt__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvugt(node, ast.bv(value, node->getBitvectorSize()));
+            }, pybind11::is_operator())
+
+          .def("__rgt__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvugt(node, ast.bv(value, node->getBitvectorSize()));
+            }, pybind11::is_operator())
+
+          /******************************************************************/
+
+          .def("__ge__",
+            [](const triton::ast::SharedAbstractNode& node1, const triton::ast::SharedAbstractNode& node2) {
+              triton::ast::AstContext& ast = node1->getContext();
+              return ast.bvuge(node1, node2);
+            }, pybind11::is_operator())
+
+          .def("__ge__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvuge(node, ast.bv(value, node->getBitvectorSize()));
+            }, pybind11::is_operator())
+
+          .def("__rge__",
+            [](const triton::ast::SharedAbstractNode& node, pybind11::int_ o) {
+              triton::ast::AstContext& ast = node->getContext();
+              triton::uint512 value = PyLong_AsUint512(o.ptr());
+              return ast.bvuge(node, ast.bv(value, node->getBitvectorSize()));
+            }, pybind11::is_operator());
       }
 
     }; /* python namespace */

@@ -5,11 +5,10 @@
 **  This program is under the terms of the BSD License.
 */
 
-#include <triton/pythonObjects.hpp>
-#include <triton/pythonUtils.hpp>
-#include <triton/pythonXFunctions.hpp>
-#include <triton/exceptions.hpp>
+#include <triton/pythonBindings.hpp>
 #include <triton/instruction.hpp>
+
+#include <string>
 
 
 
@@ -224,593 +223,76 @@ namespace triton {
   namespace bindings {
     namespace python {
 
-      //! Instruction destructor.
-      void Instruction_dealloc(PyObject* self) {
-        std::cout << std::flush;
-        delete PyInstruction_AsInstruction(self);
-        Py_TYPE(self)->tp_free((PyObject*)self);
-      }
-
-
-      static PyObject* Instruction_getAddress(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint64(PyInstruction_AsInstruction(self)->getAddress());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_getCodeCondition(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PyInstruction_AsInstruction(self)->getCodeCondition());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_getDisassembly(PyObject* self, PyObject* noarg) {
-        try {
-          if (!PyInstruction_AsInstruction(self)->getDisassembly().empty())
-            return PyString_FromFormat("%s", PyInstruction_AsInstruction(self)->getDisassembly().c_str());
-          Py_INCREF(Py_None);
-          return Py_None;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_getLoadAccess(PyObject* self, PyObject* noarg) {
-        try {
-          PyObject* ret;
-          triton::uint32 index = 0;
-          const auto& loadAccess = PyInstruction_AsInstruction(self)->getLoadAccess();
-
-          ret = xPyList_New(loadAccess.size());
-          for (auto it = loadAccess.cbegin(); it != loadAccess.cend(); it++) {
-            PyObject* item = xPyTuple_New(2);
-            PyTuple_SetItem(item, 0, PyMemoryAccess(std::get<0>(*it)));
-            PyTuple_SetItem(item, 1, PyAstNode(std::get<1>(*it)));
-            PyList_SetItem(ret, index++, item);
-          }
-
-          return ret;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_getNextAddress(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint64(PyInstruction_AsInstruction(self)->getNextAddress());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_getOpcode(PyObject* self, PyObject* noarg) {
-        try {
-          const triton::uint8* opcode = PyInstruction_AsInstruction(self)->getOpcode();
-          triton::uint32 size         = PyInstruction_AsInstruction(self)->getSize();
-          return PyBytes_FromStringAndSize(reinterpret_cast<const char*>(opcode), size);
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_getSize(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PyInstruction_AsInstruction(self)->getSize());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_getStoreAccess(PyObject* self, PyObject* noarg) {
-        try {
-          PyObject* ret;
-          triton::uint32 index = 0;
-          const auto& storeAccess = PyInstruction_AsInstruction(self)->getStoreAccess();
-
-          ret = xPyList_New(storeAccess.size());
-          for (auto it = storeAccess.cbegin(); it != storeAccess.cend(); it++) {
-            PyObject* item = xPyTuple_New(2);
-            PyTuple_SetItem(item, 0, PyMemoryAccess(std::get<0>(*it)));
-            PyTuple_SetItem(item, 1, PyAstNode(std::get<1>(*it)));
-            PyList_SetItem(ret, index++, item);
-          }
-
-          return ret;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_getOperands(PyObject* self, PyObject* noarg) {
-        try {
-          triton::arch::Instruction* inst;
-          triton::usize opSize;
-          PyObject* operands;
-
-          inst     = PyInstruction_AsInstruction(self);
-          opSize   = inst->operands.size();
-          operands = xPyList_New(opSize);
-
-          for (triton::usize index = 0; index < opSize; index++) {
-            PyObject* obj = nullptr;
-
-            if (inst->operands[index].getType() == triton::arch::OP_IMM) {
-              const triton::arch::Immediate& imm = inst->operands[index].getConstImmediate();
-              obj = PyImmediate(imm);
-            }
-            else if (inst->operands[index].getType() == triton::arch::OP_MEM) {
-              const triton::arch::MemoryAccess& mem = inst->operands[index].getConstMemory();
-              obj = PyMemoryAccess(mem);
-            }
-            else if (inst->operands[index].getType() == triton::arch::OP_REG) {
-              const triton::arch::Register& reg = inst->operands[index].getConstRegister();
-              obj = PyRegister(reg);
-            }
-            else
-              continue;
-
-            PyList_SetItem(operands, index, obj);
-          }
-
-          return operands;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_getPrefix(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PyInstruction_AsInstruction(self)->getPrefix());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_getReadImmediates(PyObject* self, PyObject* noarg) {
-        try {
-          PyObject* ret;
-          triton::uint32 index = 0;
-          const auto& readImmediates = PyInstruction_AsInstruction(self)->getReadImmediates();
-
-          ret = xPyList_New(readImmediates.size());
-          for (auto it = readImmediates.cbegin(); it != readImmediates.cend(); it++) {
-            PyObject* item = xPyTuple_New(2);
-            PyTuple_SetItem(item, 0, PyImmediate(std::get<0>(*it)));
-            PyTuple_SetItem(item, 1, PyAstNode(std::get<1>(*it)));
-            PyList_SetItem(ret, index++, item);
-          }
-
-          return ret;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_getReadRegisters(PyObject* self, PyObject* noarg) {
-        try {
-          PyObject* ret;
-          triton::uint32 index = 0;
-          const auto& readRegisters = PyInstruction_AsInstruction(self)->getReadRegisters();
-
-          ret = xPyList_New(readRegisters.size());
-          for (auto it = readRegisters.cbegin(); it != readRegisters.cend(); it++) {
-            PyObject* item = xPyTuple_New(2);
-            PyTuple_SetItem(item, 0, PyRegister(std::get<0>(*it)));
-            PyTuple_SetItem(item, 1, PyAstNode(std::get<1>(*it)));
-            PyList_SetItem(ret, index++, item);
-          }
-
-          return ret;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_getSymbolicExpressions(PyObject* self, PyObject* noarg) {
-        try {
-          triton::arch::Instruction*  inst;
-          triton::usize               exprSize;
-          PyObject*                   symExprs;
-
-          inst     = PyInstruction_AsInstruction(self);
-          exprSize = inst->symbolicExpressions.size();
-          symExprs = xPyList_New(exprSize);
-
-          for (triton::usize index = 0; index < exprSize; index++) {
-            PyObject* obj = PySymbolicExpression(inst->symbolicExpressions[index]);
-            PyList_SetItem(symExprs, index, obj);
-          }
-
-          return symExprs;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_getThreadId(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PyInstruction_AsInstruction(self)->getThreadId());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_getType(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PyInstruction_AsInstruction(self)->getType());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_getUndefinedRegisters(PyObject* self, PyObject* noarg) {
-        try {
-          PyObject* ret;
-          triton::uint32 index = 0;
-          const auto& undefinedRegisters = PyInstruction_AsInstruction(self)->getUndefinedRegisters();
-
-          ret = xPyList_New(undefinedRegisters.size());
-          for (auto it = undefinedRegisters.cbegin(); it != undefinedRegisters.cend(); it++) {
-            PyList_SetItem(ret, index++, PyRegister(*it));
-          }
-
-          return ret;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_getWrittenRegisters(PyObject* self, PyObject* noarg) {
-        try {
-          PyObject* ret;
-          triton::uint32 index = 0;
-          const auto& writtenRegisters = PyInstruction_AsInstruction(self)->getWrittenRegisters();
-
-          ret = xPyList_New(writtenRegisters.size());
-          for (auto it = writtenRegisters.cbegin(); it != writtenRegisters.cend(); it++) {
-            PyObject* item = xPyTuple_New(2);
-            PyTuple_SetItem(item, 0, PyRegister(std::get<0>(*it)));
-            PyTuple_SetItem(item, 1, PyAstNode(std::get<1>(*it)));
-            PyList_SetItem(ret, index++, item);
-          }
-
-          return ret;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_isBranch(PyObject* self, PyObject* noarg) {
-        try {
-          if (PyInstruction_AsInstruction(self)->isBranch() == true)
-            Py_RETURN_TRUE;
-          Py_RETURN_FALSE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_isConditionTaken(PyObject* self, PyObject* noarg) {
-        try {
-          if (PyInstruction_AsInstruction(self)->isConditionTaken() == true)
-            Py_RETURN_TRUE;
-          Py_RETURN_FALSE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_isControlFlow(PyObject* self, PyObject* noarg) {
-        try {
-          if (PyInstruction_AsInstruction(self)->isControlFlow() == true)
-            Py_RETURN_TRUE;
-          Py_RETURN_FALSE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_isMemoryRead(PyObject* self, PyObject* noarg) {
-        try {
-          if (PyInstruction_AsInstruction(self)->isMemoryRead() == true)
-            Py_RETURN_TRUE;
-          Py_RETURN_FALSE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_isMemoryWrite(PyObject* self, PyObject* noarg) {
-        try {
-          if (PyInstruction_AsInstruction(self)->isMemoryWrite() == true)
-            Py_RETURN_TRUE;
-          Py_RETURN_FALSE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_isPrefixed(PyObject* self, PyObject* noarg) {
-        try {
-          if (PyInstruction_AsInstruction(self)->isPrefixed() == true)
-            Py_RETURN_TRUE;
-          Py_RETURN_FALSE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_isSymbolized(PyObject* self, PyObject* noarg) {
-        try {
-          if (PyInstruction_AsInstruction(self)->isSymbolized() == true)
-            Py_RETURN_TRUE;
-          Py_RETURN_FALSE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_isTainted(PyObject* self, PyObject* noarg) {
-        try {
-          if (PyInstruction_AsInstruction(self)->isTainted() == true)
-            Py_RETURN_TRUE;
-          Py_RETURN_FALSE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_isWriteBack(PyObject* self, PyObject* noarg) {
-        try {
-          if (PyInstruction_AsInstruction(self)->isWriteBack() == true)
-            Py_RETURN_TRUE;
-          Py_RETURN_FALSE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_setAddress(PyObject* self, PyObject* addr) {
-        try {
-          if (!PyLong_Check(addr) && !PyInt_Check(addr))
-            return PyErr_Format(PyExc_TypeError, "Instruction::setAddress(): Expected an integer as argument.");
-          PyInstruction_AsInstruction(self)->setAddress(PyLong_AsUint64(addr));
-          Py_INCREF(Py_None);
-          return Py_None;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_setOpcode(PyObject* self, PyObject* opc) {
-        try {
-          if (!PyBytes_Check(opc))
-            return PyErr_Format(PyExc_TypeError, "Instruction::setOpcode(): Expected bytes as argument.");
-
-          triton::uint8* opcode = reinterpret_cast<triton::uint8*>(PyBytes_AsString(opc));
-          triton::uint32 size   = static_cast<triton::uint32>(PyBytes_Size(opc));
-
-          PyInstruction_AsInstruction(self)->setOpcode(opcode, size);
-          Py_INCREF(Py_None);
-          return Py_None;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* Instruction_setThreadId(PyObject* self, PyObject* tid) {
-        try {
-          if (!PyLong_Check(tid) && !PyInt_Check(tid))
-            return PyErr_Format(PyExc_TypeError, "Instruction::setThreadId(): Expected an integer as argument.");
-
-          PyInstruction_AsInstruction(self)->setThreadId(PyLong_AsUint32(tid));
-          Py_INCREF(Py_None);
-          return Py_None;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static int Instruction_print(PyObject* self) {
-        std::cout << PyInstruction_AsInstruction(self);
-        return 0;
-      }
-
-
-      static PyObject* Instruction_str(PyObject* self) {
-        try {
-          std::stringstream str;
-          str << PyInstruction_AsInstruction(self);
-          return PyString_FromFormat("%s", str.str().c_str());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      //! Instruction methods.
-      PyMethodDef Instruction_callbacks[] = {
-        {"getAddress",                Instruction_getAddress,               METH_NOARGS,     ""},
-        {"getCodeCondition",          Instruction_getCodeCondition,         METH_NOARGS,     ""},
-        {"getDisassembly",            Instruction_getDisassembly,           METH_NOARGS,     ""},
-        {"getLoadAccess",             Instruction_getLoadAccess,            METH_NOARGS,     ""},
-        {"getNextAddress",            Instruction_getNextAddress,           METH_NOARGS,     ""},
-        {"getOpcode",                 Instruction_getOpcode,                METH_NOARGS,     ""},
-        {"getOperands",               Instruction_getOperands,              METH_NOARGS,     ""},
-        {"getPrefix",                 Instruction_getPrefix,                METH_NOARGS,     ""},
-        {"getReadImmediates",         Instruction_getReadImmediates,        METH_NOARGS,     ""},
-        {"getReadRegisters",          Instruction_getReadRegisters,         METH_NOARGS,     ""},
-        {"getSize",                   Instruction_getSize,                  METH_NOARGS,     ""},
-        {"getStoreAccess",            Instruction_getStoreAccess,           METH_NOARGS,     ""},
-        {"getSymbolicExpressions",    Instruction_getSymbolicExpressions,   METH_NOARGS,     ""},
-        {"getThreadId",               Instruction_getThreadId,              METH_NOARGS,     ""},
-        {"getType",                   Instruction_getType,                  METH_NOARGS,     ""},
-        {"getUndefinedRegisters",     Instruction_getUndefinedRegisters,    METH_NOARGS,     ""},
-        {"getWrittenRegisters",       Instruction_getWrittenRegisters,      METH_NOARGS,     ""},
-        {"isBranch",                  Instruction_isBranch,                 METH_NOARGS,     ""},
-        {"isConditionTaken",          Instruction_isConditionTaken,         METH_NOARGS,     ""},
-        {"isControlFlow",             Instruction_isControlFlow,            METH_NOARGS,     ""},
-        {"isMemoryRead",              Instruction_isMemoryRead,             METH_NOARGS,     ""},
-        {"isMemoryWrite",             Instruction_isMemoryWrite,            METH_NOARGS,     ""},
-        {"isPrefixed",                Instruction_isPrefixed,               METH_NOARGS,     ""},
-        {"isSymbolized",              Instruction_isSymbolized,             METH_NOARGS,     ""},
-        {"isTainted",                 Instruction_isTainted,                METH_NOARGS,     ""},
-        {"isWriteBack",               Instruction_isWriteBack,              METH_NOARGS,     ""},
-        {"setAddress",                Instruction_setAddress,               METH_O,          ""},
-        {"setOpcode",                 Instruction_setOpcode,                METH_O,          ""},
-        {"setThreadId",               Instruction_setThreadId,              METH_O,          ""},
-        {nullptr,                     nullptr,                              0,               nullptr}
-      };
-
-
-      PyTypeObject Instruction_Type = {
-        PyObject_HEAD_INIT(&PyType_Type)
-        0,                                          /* ob_size */
-        "Instruction",                              /* tp_name */
-        sizeof(Instruction_Object),                 /* tp_basicsize */
-        0,                                          /* tp_itemsize */
-        (destructor)Instruction_dealloc,            /* tp_dealloc */
-        (printfunc)Instruction_print,               /* tp_print */
-        0,                                          /* tp_getattr */
-        0,                                          /* tp_setattr */
-        0,                                          /* tp_compare */
-        0,                                          /* tp_repr */
-        0,                                          /* tp_as_number */
-        0,                                          /* tp_as_sequence */
-        0,                                          /* tp_as_mapping */
-        0,                                          /* tp_hash */
-        0,                                          /* tp_call */
-        (reprfunc)Instruction_str,                  /* tp_str */
-        0,                                          /* tp_getattro */
-        0,                                          /* tp_setattro */
-        0,                                          /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT,                         /* tp_flags */
-        "Instruction objects",                      /* tp_doc */
-        0,                                          /* tp_traverse */
-        0,                                          /* tp_clear */
-        0,                                          /* tp_richcompare */
-        0,                                          /* tp_weaklistoffset */
-        0,                                          /* tp_iter */
-        0,                                          /* tp_iternext */
-        Instruction_callbacks,                      /* tp_methods */
-        0,                                          /* tp_members */
-        0,                                          /* tp_getset */
-        0,                                          /* tp_base */
-        0,                                          /* tp_dict */
-        0,                                          /* tp_descr_get */
-        0,                                          /* tp_descr_set */
-        0,                                          /* tp_dictoffset */
-        0,                                          /* tp_init */
-        0,                                          /* tp_alloc */
-        0,                                          /* tp_new */
-        0,                                          /* tp_free */
-        0,                                          /* tp_is_gc */
-        0,                                          /* tp_bases */
-        0,                                          /* tp_mro */
-        0,                                          /* tp_cache */
-        0,                                          /* tp_subclasses */
-        0,                                          /* tp_weaklist */
-        (destructor)Instruction_dealloc,            /* tp_del */
-        0                                           /* tp_version_tag */
-      };
-
-
-      PyObject* PyInstruction(void) {
-        Instruction_Object* object;
-
-        PyType_Ready(&Instruction_Type);
-        object = PyObject_NEW(Instruction_Object, &Instruction_Type);
-        if (object != NULL)
-          object->inst = new triton::arch::Instruction();
-
-        return (PyObject*)object;
-      }
-
-
-      PyObject* PyInstruction(const triton::uint8* opcode, triton::uint32 opSize) {
-        Instruction_Object* object;
-
-        PyType_Ready(&Instruction_Type);
-        object = PyObject_NEW(Instruction_Object, &Instruction_Type);
-        if (object != NULL)
-          object->inst = new triton::arch::Instruction(opcode, opSize);
-
-        return (PyObject*)object;
-      }
-
-
-      PyObject* PyInstruction(const triton::arch::Instruction& inst) {
-        Instruction_Object* object;
-
-        PyType_Ready(&Instruction_Type);
-        object = PyObject_NEW(Instruction_Object, &Instruction_Type);
-        if (object != NULL)
-          object->inst = new triton::arch::Instruction(inst);
-
-        return (PyObject*)object;
+      void initInstructionObject(pybind11::module& pyTriton) {
+        pybind11::class_<triton::arch::Instruction>(pyTriton, "Instruction", "The Instruction class")
+
+          .def(pybind11::init<>())
+          .def("__init__",
+            [] (triton::arch::Instruction& inst, pybind11::bytes opcode) {
+              std::string s = opcode.cast<std::string>();
+              new (&inst) triton::arch::Instruction(reinterpret_cast<const triton::uint8*>(s.data()), s.size());
+            })
+
+          .def("getAddress",                &triton::arch::Instruction::getAddress)
+          .def("getCodeCondition",          &triton::arch::Instruction::getCodeCondition)
+          .def("getDisassembly",            &triton::arch::Instruction::getDisassembly)
+          .def("getLoadAccess",             &triton::arch::Instruction::getLoadAccess)
+          .def("getNextAddress",            &triton::arch::Instruction::getNextAddress)
+          .def("getPrefix",                 &triton::arch::Instruction::getPrefix)
+          .def("getReadImmediates",         &triton::arch::Instruction::getReadImmediates)
+          .def("getReadRegisters",          &triton::arch::Instruction::getReadRegisters)
+          .def("getSize",                   &triton::arch::Instruction::getSize)
+          .def("getStoreAccess",            &triton::arch::Instruction::getStoreAccess)
+          .def("getThreadId",               &triton::arch::Instruction::getThreadId)
+          .def("getType",                   &triton::arch::Instruction::getType)
+          .def("getUndefinedRegisters",     &triton::arch::Instruction::getUndefinedRegisters)
+          .def("getWrittenRegisters",       &triton::arch::Instruction::getWrittenRegisters)
+          .def("isBranch",                  &triton::arch::Instruction::isBranch)
+          .def("isConditionTaken",          &triton::arch::Instruction::isConditionTaken)
+          .def("isControlFlow",             &triton::arch::Instruction::isControlFlow)
+          .def("isMemoryRead",              &triton::arch::Instruction::isMemoryRead)
+          .def("isMemoryWrite",             &triton::arch::Instruction::isMemoryWrite)
+          .def("isPrefixed",                &triton::arch::Instruction::isPrefixed)
+          .def("isSymbolized",              &triton::arch::Instruction::isSymbolized)
+          .def("isTainted",                 &triton::arch::Instruction::isTainted)
+          .def("isWriteBack",               &triton::arch::Instruction::isWriteBack)
+          .def("setAddress",                &triton::arch::Instruction::setAddress)
+          .def("setThreadId",               &triton::arch::Instruction::setThreadId)
+
+          .def("getOpcode",
+            [] (const triton::arch::Instruction& self) -> pybind11::bytes {
+              return std::string(reinterpret_cast<const char*>(self.getOpcode()), self.getSize());
+            })
+
+          .def("getOperands",
+            [] (const triton::arch::Instruction& self) {
+              return self.operands;
+            })
+
+          .def("getSymbolicExpressions",
+            [] (const triton::arch::Instruction& self) {
+              return self.symbolicExpressions;
+            })
+
+          .def("setOpcode",
+            [] (triton::arch::Instruction& self, pybind11::bytes opcode) {
+              std::string s = opcode.cast<std::string>();
+              self.setOpcode(reinterpret_cast<const triton::uint8*>(s.data()), s.size());
+            })
+
+          .def("__repr__",
+            [] (const triton::arch::Instruction& inst) {
+              std::ostringstream stream;
+              stream << inst;
+              return stream.str();
+            })
+
+          .def("__str__",
+            [] (const triton::arch::Instruction& inst) {
+              std::ostringstream stream;
+              stream << inst;
+              return stream.str();
+            });
       }
 
     }; /* python namespace */

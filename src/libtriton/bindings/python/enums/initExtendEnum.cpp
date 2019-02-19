@@ -6,8 +6,6 @@
 */
 
 #include <triton/pythonBindings.hpp>
-#include <triton/pythonUtils.hpp>
-#include <triton/pythonXFunctions.hpp>
 #include <triton/archEnums.hpp>
 
 
@@ -60,22 +58,21 @@ namespace triton {
   namespace bindings {
     namespace python {
 
-      void initExtendNamespace(PyObject* extendDict) {
-        PyDict_Clear(extendDict);
+      void initExtendEnum(pybind11::module& pyTriton) {
+        /* Define a submodule */
+        pybind11::module extend = pyTriton.def_submodule("EXTEND", "");
 
-        PyObject* aarch64ExtendDict      = xPyDict_New();
-        PyObject* aarch64ExtendDictClass = xPyClass_New(nullptr, aarch64ExtendDict, xPyString_FromString("AARCH64"));
-        xPyDict_SetItemString(extendDict, "AARCH64", aarch64ExtendDictClass);
-
-        xPyDict_SetItemString(aarch64ExtendDict, "INVALID", PyLong_FromUint32(triton::arch::aarch64::ID_EXTEND_INVALID));
-        xPyDict_SetItemString(aarch64ExtendDict, "UXTB",    PyLong_FromUint32(triton::arch::aarch64::ID_EXTEND_UXTB));
-        xPyDict_SetItemString(aarch64ExtendDict, "UXTH",    PyLong_FromUint32(triton::arch::aarch64::ID_EXTEND_UXTH));
-        xPyDict_SetItemString(aarch64ExtendDict, "UXTW",    PyLong_FromUint32(triton::arch::aarch64::ID_EXTEND_UXTW));
-        xPyDict_SetItemString(aarch64ExtendDict, "UXTX",    PyLong_FromUint32(triton::arch::aarch64::ID_EXTEND_UXTX));
-        xPyDict_SetItemString(aarch64ExtendDict, "SXTB",    PyLong_FromUint32(triton::arch::aarch64::ID_EXTEND_SXTB));
-        xPyDict_SetItemString(aarch64ExtendDict, "SXTH",    PyLong_FromUint32(triton::arch::aarch64::ID_EXTEND_SXTH));
-        xPyDict_SetItemString(aarch64ExtendDict, "SXTW",    PyLong_FromUint32(triton::arch::aarch64::ID_EXTEND_SXTW));
-        xPyDict_SetItemString(aarch64ExtendDict, "SXTX",    PyLong_FromUint32(triton::arch::aarch64::ID_EXTEND_SXTX));
+        /* EXTEND Enum */
+        pybind11::enum_<triton::arch::aarch64::extend_e>(extend, "AARCH64")
+          .value("INVALID", triton::arch::aarch64::ID_EXTEND_INVALID)
+          .value("UXTB",    triton::arch::aarch64::ID_EXTEND_UXTB)
+          .value("UXTH",    triton::arch::aarch64::ID_EXTEND_UXTH)
+          .value("UXTW",    triton::arch::aarch64::ID_EXTEND_UXTW)
+          .value("UXTX",    triton::arch::aarch64::ID_EXTEND_UXTX)
+          .value("SXTB",    triton::arch::aarch64::ID_EXTEND_SXTB)
+          .value("SXTH",    triton::arch::aarch64::ID_EXTEND_SXTH)
+          .value("SXTW",    triton::arch::aarch64::ID_EXTEND_SXTW)
+          .value("SXTX",    triton::arch::aarch64::ID_EXTEND_SXTX);
       }
 
     }; /* python namespace */

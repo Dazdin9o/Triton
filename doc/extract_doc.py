@@ -19,13 +19,13 @@ if SPEC.find('x86') >= 0:
         out.write('<ul>\n')
         for name, valid in x86_regs:
             if valid:
-                out.write("<li><b>REG.X86.{}</b></li>\n".format(name))
+                out.write("<li><b>REG.X86_{}</b></li>\n".format(name))
         out.write('</ul>\n')
 
     with open(os.path.join(BUILD_DIR, "x8664_reg"), "w") as out:
         out.write('<ul>\n')
         for name, _ in x86_regs:
-            out.write("<li><b>REG.X86_64.{}</b></li>\n".format(name))
+            out.write("<li><b>REG.X86_{}</b></li>\n".format(name))
         out.write('</ul>\n')
 
 ##############################################################################
@@ -40,5 +40,5 @@ elif SPEC.find('aarch64') >= 0:
     with open(os.path.join(BUILD_DIR, "aarch64_reg"), "w") as out:
         out.write('<ul>\n')
         for name in aarch64_regs:
-            out.write("<li><b>REG.AARCH64.{}</b></li>\n".format(name))
+            out.write("<li><b>REG.AARCH64_{}</b></li>\n".format(name))
         out.write('</ul>\n')

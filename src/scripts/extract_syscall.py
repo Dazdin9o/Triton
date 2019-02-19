@@ -57,7 +57,7 @@ if __name__ == "__main__":
             sysid  = int(match.groups()[2])
             if counter != sysid:
                 for i in range(sysid - counter):
-                    print('        "UNDEF", // undefined')
+                    print('        "UNDEF_%d", // undefined' %(counter))
                     counter += 1
             print('        "%s", // %s%s' % (name.upper(), prefix, name))
             counter += 1

@@ -6,8 +6,6 @@
 */
 
 #include <triton/pythonBindings.hpp>
-#include <triton/pythonUtils.hpp>
-#include <triton/pythonXFunctions.hpp>
 #include <triton/version.hpp>
 
 
@@ -37,10 +35,12 @@ namespace triton {
   namespace bindings {
     namespace python {
 
-      void initVersionNamespace(PyObject* versionDict) {
-        xPyDict_SetItemString(versionDict, "MAJOR", PyLong_FromUint32(triton::MAJOR));
-        xPyDict_SetItemString(versionDict, "MINOR", PyLong_FromUint32(triton::MINOR));
-        xPyDict_SetItemString(versionDict, "BUILD", PyLong_FromUint32(triton::BUILD));
+      void initVersionEnum(pybind11::module& pyTriton) {
+        /* VERSION Enum */
+        pybind11::enum_<triton::version_e>(pyTriton, "VERSION")
+          .value("MAJOR", triton::MAJOR)
+          .value("MINOR", triton::MINOR)
+          .value("BUILD", triton::BUILD);
       }
 
     }; /* python namespace */

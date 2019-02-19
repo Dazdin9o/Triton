@@ -45,8 +45,7 @@ namespace triton {
       //! Shared Symbolic variable
       using SharedSymbolicVariable = std::shared_ptr<triton::engines::symbolic::SymbolicVariable>;
 
-      /*! \class SymbolicVariable
-          \brief The symbolic variable class. */
+      //! The symbolic variable class
       class SymbolicVariable {
         protected:
           //! The symbolic variable type assignment.

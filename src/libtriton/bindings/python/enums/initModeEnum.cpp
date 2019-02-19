@@ -6,9 +6,7 @@
 */
 
 #include <triton/pythonBindings.hpp>
-#include <triton/pythonUtils.hpp>
-#include <triton/pythonXFunctions.hpp>
-#include <triton/modes.hpp>
+#include <triton/modesEnums.hpp>
 
 
 
@@ -62,15 +60,17 @@ namespace triton {
   namespace bindings {
     namespace python {
 
-      void initModeNamespace(PyObject* modeDict) {
-        xPyDict_SetItemString(modeDict, "ALIGNED_MEMORY",                 PyLong_FromUint32(triton::modes::ALIGNED_MEMORY));
-        xPyDict_SetItemString(modeDict, "AST_OPTIMIZATIONS",              PyLong_FromUint32(triton::modes::AST_OPTIMIZATIONS));
-        xPyDict_SetItemString(modeDict, "CONCRETIZE_UNDEFINED_REGISTERS", PyLong_FromUint32(triton::modes::CONCRETIZE_UNDEFINED_REGISTERS));
-        xPyDict_SetItemString(modeDict, "ONLY_ON_SYMBOLIZED",             PyLong_FromUint32(triton::modes::ONLY_ON_SYMBOLIZED));
-        xPyDict_SetItemString(modeDict, "ONLY_ON_TAINTED",                PyLong_FromUint32(triton::modes::ONLY_ON_TAINTED));
-        xPyDict_SetItemString(modeDict, "PC_TRACKING_SYMBOLIC",           PyLong_FromUint32(triton::modes::PC_TRACKING_SYMBOLIC));
-        xPyDict_SetItemString(modeDict, "SYMBOLIZE_INDEX_ROTATION",       PyLong_FromUint32(triton::modes::SYMBOLIZE_INDEX_ROTATION));
-        xPyDict_SetItemString(modeDict, "TAINT_THROUGH_POINTERS",         PyLong_FromUint32(triton::modes::TAINT_THROUGH_POINTERS));
+      void initModeEnum(pybind11::module& pyTriton) {
+        /* MODE Enum */
+        pybind11::enum_<triton::modes::mode_e>(pyTriton, "MODE")
+          .value("ALIGNED_MEMORY",                 triton::modes::ALIGNED_MEMORY)
+          .value("AST_OPTIMIZATIONS",              triton::modes::AST_OPTIMIZATIONS)
+          .value("CONCRETIZE_UNDEFINED_REGISTERS", triton::modes::CONCRETIZE_UNDEFINED_REGISTERS)
+          .value("ONLY_ON_SYMBOLIZED",             triton::modes::ONLY_ON_SYMBOLIZED)
+          .value("ONLY_ON_TAINTED",                triton::modes::ONLY_ON_TAINTED)
+          .value("PC_TRACKING_SYMBOLIC",           triton::modes::PC_TRACKING_SYMBOLIC)
+          .value("SYMBOLIZE_INDEX_ROTATION",       triton::modes::SYMBOLIZE_INDEX_ROTATION)
+          .value("TAINT_THROUGH_POINTERS",         triton::modes::TAINT_THROUGH_POINTERS);
       }
 
     }; /* python namespace */

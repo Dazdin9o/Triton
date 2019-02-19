@@ -5,6 +5,13 @@
 **  This program is under the terms of the BSD License.
 */
 
+#include <Python.h>
+#include <longintrepr.h>
+#if _WIN32
+  #include <cmath>
+  #define _hypot hypot
+#endif
+
 #include <triton/pythonBindings.hpp>
 #include <triton/pythonUtils.hpp>
 #include <triton/exceptions.hpp>

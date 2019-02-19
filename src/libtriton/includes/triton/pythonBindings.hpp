@@ -8,12 +8,9 @@
 #ifndef TRITONPYTHONBINDINGS_H
 #define TRITONPYTHONBINDINGS_H
 
-#include <Python.h>
-#include <longintrepr.h>
-#if _WIN32
-  #include <cmath>
-  #define _hypot hypot
-#endif
+#include <triton/pybind11/pybind11.h>
+#include <triton/pybind11/stl.h>
+#include <triton/pybind11/operators.h>
 
 
 
@@ -40,69 +37,38 @@ namespace triton {
      *  @{
      */
 
-      //! triton python module.
-      extern PyObject* tritonModule;
-
-      //! triton python methods.
-      extern PyMethodDef tritonCallbacks[];
-
-      //! Initializes the ARCH python namespace.
-      void initArchNamespace(PyObject* archDict);
-
-      //! Initializes the AST_NODE python namespace.
-      void initAstNodeNamespace(PyObject* astNodeDict);
-
-      //! Initializes the AST_REPRESENTATION python namespace.
-      void initAstRepresentationNamespace(PyObject* astRepresentationDict);
-
-      //! Initializes the CALLBACK python namespace.
-      void initCallbackNamespace(PyObject* callbackDict);
-
-      //! Initializes the CONDITION python namespace.
-      void initConditionsNamespace(PyObject* conditionsDict);
-
-      //! Initializes the CPUSIZE python namespace.
-      void initCpuSizeNamespace(PyObject* cpuSizeDict);
-
-      //! Initializes the OPCODE python namespace.
-      void initOpcodesNamespace(PyObject* opcodeDict);
-
-      //! Initializes the PREFIX python namespace.
-      void initPrefixesNamespace(PyObject* prefixDict);
-
-      //! Initializes the OPERAND python namespace.
-      void initOperandNamespace(PyObject* operandDict);
-
-      //! Initializes the SHIFT python namespace.
-      void initShiftsNamespace(PyObject* shiftDict);
-
-      //! Initializes the EXTEND python namespace.
-      void initExtendNamespace(PyObject* extendDict);
-
-      //! Initializes the REG python namespace.
-      void initRegNamespace(PyObject* regDict);
-
-      //! Initializes the MODE python namespace.
-      void initModeNamespace(PyObject* modeDict);
-
-      //! Initializes the SYMBOLIC python namespace.
-      void initSymbolicNamespace(PyObject* symbolicDict);
-
+      void initArchEnum(pybind11::module& pyTriton);
+      void initAstNodeEnum(pybind11::module& pyTriton);
+      void initAstRepresentationEnum(pybind11::module& pyTriton);
+      void initCallbackEnum(pybind11::module& pyTriton);
+      void initConditionEnum(pybind11::module& pyTriton);
+      void initCpuSizeEnum(pybind11::module& pyTriton);
+      void initExtendEnum(pybind11::module& pyTriton);
+      void initModeEnum(pybind11::module& pyTriton);
+      void initOpcodeEnum(pybind11::module& pyTriton);
+      void initOperandEnum(pybind11::module& pyTriton);
+      void initPrefixEnum(pybind11::module& pyTriton);
+      void initRegisterEnum(pybind11::module& pyTriton);
+      void initShiftEnum(pybind11::module& pyTriton);
+      void initSymbolicEnum(pybind11::module& pyTriton);
       #if defined(__unix__) || defined(__APPLE__)
-      //! Initializes the SYSCALL32 python namespace.
-      void initSyscall64Namespace(PyObject* sys64Dict);
-
-      #if defined(__unix__)
-      //! Initializes the SYSCALL32 python namespace.
-      void initSyscall32Namespace(PyObject* sys32Dict);
+      void initSyscallEnum(pybind11::module& pyTriton);
       #endif
-      #endif
+      void initVersionEnum(pybind11::module& pyTriton);
 
-      //! Initializes the VERSION python namespace.
-      void initVersionNamespace(PyObject* versionDict);
-
-      //! Entry point python bindings.
-      PyMODINIT_FUNC inittriton(void);
+      void initAstContextObject(pybind11::module& pyTriton);
+      void initAstNodeObject(pybind11::module& pyTriton);
+      void initBitsVectorObject(pybind11::module& pyTriton);
+      void initImmediateObject(pybind11::module& pyTriton);
+      void initInstructionObject(pybind11::module& pyTriton);
+      void initMemoryAccessObject(pybind11::module& pyTriton);
+      void initPathConstraintObject(pybind11::module& pyTriton);
+      void initRegisterObject(pybind11::module& pyTriton);
+      void initShortcutRegisterObject(pybind11::module& pyTriton);
+      void initSolverModelObject(pybind11::module& pyTriton);
+      void initSymbolicExpressionObject(pybind11::module& pyTriton);
+      void initSymbolicVariableObject(pybind11::module& pyTriton);
+      void initTritonContextObject(pybind11::module& pyTriton);
 
     /*! @} End of python namespace */
     };

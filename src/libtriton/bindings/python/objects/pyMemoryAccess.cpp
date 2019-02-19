@@ -5,10 +5,7 @@
 **  This program is under the terms of the BSD License.
 */
 
-#include <triton/pythonObjects.hpp>
-#include <triton/pythonUtils.hpp>
-#include <triton/pythonXFunctions.hpp>
-#include <triton/exceptions.hpp>
+#include <triton/pythonBindings.hpp>
 #include <triton/memoryAccess.hpp>
 
 
@@ -150,343 +147,47 @@ namespace triton {
   namespace bindings {
     namespace python {
 
-      //! MemoryAccess destructor.
-      void MemoryAccess_dealloc(PyObject* self) {
-        std::cout << std::flush;
-        delete PyMemoryAccess_AsMemoryAccess(self);
-        Py_TYPE(self)->tp_free((PyObject*)self);
-      }
+      void initMemoryAccessObject(pybind11::module& pyTriton) {
+        pybind11::class_<triton::arch::MemoryAccess>(pyTriton, "MemoryAccess", "The MemoryAccess class")
 
+          .def(pybind11::init<>())
+          .def(pybind11::init<triton::uint64, triton::uint32>())
 
-      static PyObject* MemoryAccess_getAddress(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint64(PyMemoryAccess_AsMemoryAccess(self)->getAddress());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
+          .def("getAddress",          &triton::arch::MemoryAccess::getAddress)
+          .def("getBaseRegister",     &triton::arch::MemoryAccess::getBaseRegister)
+          .def("getBitSize",          &triton::arch::MemoryAccess::getBitSize)
+          .def("getDisplacement",     &triton::arch::MemoryAccess::getDisplacement)
+          .def("getIndexRegister",    &triton::arch::MemoryAccess::getIndexRegister)
+          .def("getLeaAst",           &triton::arch::MemoryAccess::getLeaAst)
+          .def("getScale",            &triton::arch::MemoryAccess::getScale)
+          .def("getSegmentRegister",  &triton::arch::MemoryAccess::getSegmentRegister)
+          .def("getSize",             &triton::arch::MemoryAccess::getSize)
+          .def("getType",             &triton::arch::MemoryAccess::getType)
+          .def("isOverlapWith",       &triton::arch::MemoryAccess::isOverlapWith)
+          .def("setBaseRegister",     &triton::arch::MemoryAccess::setBaseRegister)
+          .def("setDisplacement",     &triton::arch::MemoryAccess::setDisplacement)
+          .def("setIndexRegister",    &triton::arch::MemoryAccess::setIndexRegister)
+          .def("setScale",            &triton::arch::MemoryAccess::setScale)
+          .def("setSegmentRegister",  &triton::arch::MemoryAccess::setSegmentRegister)
 
+          .def("getBitvector",
+            [] (const triton::arch::MemoryAccess& self) -> triton::arch::BitsVector {
+              return static_cast<triton::arch::BitsVector>(self);
+            })
 
-      static PyObject* MemoryAccess_getLeaAst(PyObject* self, PyObject* noarg) {
-        try {
-          if (PyMemoryAccess_AsMemoryAccess(self)->getLeaAst() == nullptr) {
-            Py_INCREF(Py_None);
-            return Py_None;
-          }
-          return PyAstNode(PyMemoryAccess_AsMemoryAccess(self)->getLeaAst());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
+          .def("__repr__",
+            [] (const triton::arch::MemoryAccess& mem) {
+              std::ostringstream stream;
+              stream << mem;
+              return stream.str();
+            })
 
-
-      static PyObject* MemoryAccess_getBaseRegister(PyObject* self, PyObject* noarg) {
-        try {
-          triton::arch::Register reg(PyMemoryAccess_AsMemoryAccess(self)->getBaseRegister());
-          return PyRegister(reg);
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* MemoryAccess_getBitSize(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PyMemoryAccess_AsMemoryAccess(self)->getBitSize());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* MemoryAccess_getBitvector(PyObject* self, PyObject* noarg) {
-        try {
-          return PyBitsVector(*PyMemoryAccess_AsMemoryAccess(self));
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* MemoryAccess_getDisplacement(PyObject* self, PyObject* noarg) {
-        try {
-          triton::arch::Immediate imm(PyMemoryAccess_AsMemoryAccess(self)->getDisplacement());
-          return PyImmediate(imm);
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* MemoryAccess_getIndexRegister(PyObject* self, PyObject* noarg) {
-        try {
-          triton::arch::Register reg(PyMemoryAccess_AsMemoryAccess(self)->getIndexRegister());
-          return PyRegister(reg);
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* MemoryAccess_getScale(PyObject* self, PyObject* noarg) {
-        try {
-          triton::arch::Immediate imm(PyMemoryAccess_AsMemoryAccess(self)->getScale());
-          return PyImmediate(imm);
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* MemoryAccess_getSegmentRegister(PyObject* self, PyObject* noarg) {
-        try {
-          triton::arch::Register reg(PyMemoryAccess_AsMemoryAccess(self)->getSegmentRegister());
-          return PyRegister(reg);
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* MemoryAccess_getSize(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PyMemoryAccess_AsMemoryAccess(self)->getSize());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* MemoryAccess_getType(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PyMemoryAccess_AsMemoryAccess(self)->getType());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* MemoryAccess_isOverlapWith(PyObject* self, PyObject* mem2) {
-        try {
-          triton::arch::MemoryAccess* mem1;
-
-          if (!PyMemoryAccess_Check(mem2))
-            return PyErr_Format(PyExc_TypeError, "MemoryAccess::isOverlapWith(): Expected a MemoryAccess as argument.");
-
-          mem1 = PyMemoryAccess_AsMemoryAccess(self);
-          if (mem1->isOverlapWith(*PyMemoryAccess_AsMemoryAccess(mem2)))
-            Py_RETURN_TRUE;
-          Py_RETURN_FALSE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* MemoryAccess_setBaseRegister(PyObject* self, PyObject* reg) {
-        try {
-          triton::arch::MemoryAccess* mem;
-
-          if (!PyRegister_Check(reg))
-            return PyErr_Format(PyExc_TypeError, "MemoryAccess::setBaseRegister(): Expected a Register as argument.");
-
-          mem = PyMemoryAccess_AsMemoryAccess(self);
-          mem->setBaseRegister(*PyRegister_AsRegister(reg));
-          Py_INCREF(Py_None);
-          return Py_None;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* MemoryAccess_setDisplacement(PyObject* self, PyObject* imm) {
-        try {
-          triton::arch::MemoryAccess* mem;
-
-          if (!PyImmediate_Check(imm))
-            return PyErr_Format(PyExc_TypeError, "MemoryAccess::setDisplacement(): Expected an Immediate as argument.");
-
-          mem = PyMemoryAccess_AsMemoryAccess(self);
-          mem->setDisplacement(*PyImmediate_AsImmediate(imm));
-          Py_INCREF(Py_None);
-          return Py_None;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* MemoryAccess_setIndexRegister(PyObject* self, PyObject* reg) {
-        try {
-          triton::arch::MemoryAccess* mem;
-
-          if (!PyRegister_Check(reg))
-            return PyErr_Format(PyExc_TypeError, "MemoryAccess::setIndexRegister(): Expected a Register as argument.");
-
-          mem = PyMemoryAccess_AsMemoryAccess(self);
-          mem->setIndexRegister(*PyRegister_AsRegister(reg));
-          Py_INCREF(Py_None);
-          return Py_None;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* MemoryAccess_setScale(PyObject* self, PyObject* imm) {
-        try {
-          triton::arch::MemoryAccess* mem;
-
-          if (!PyImmediate_Check(imm))
-            return PyErr_Format(PyExc_TypeError, "MemoryAccess::setScale(): Expected an Immediate as argument.");
-
-          mem = PyMemoryAccess_AsMemoryAccess(self);
-          mem->setScale(*PyImmediate_AsImmediate(imm));
-          Py_INCREF(Py_None);
-          return Py_None;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* MemoryAccess_setSegmentRegister(PyObject* self, PyObject* reg) {
-        try {
-          triton::arch::MemoryAccess* mem;
-
-          if (!PyRegister_Check(reg))
-            return PyErr_Format(PyExc_TypeError, "MemoryAccess::setSegmentRegister(): Expected a Register as argument.");
-
-          mem = PyMemoryAccess_AsMemoryAccess(self);
-          mem->setSegmentRegister(*PyRegister_AsRegister(reg));
-          Py_INCREF(Py_None);
-          return Py_None;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static int MemoryAccess_print(PyObject* self) {
-        std::cout << PyMemoryAccess_AsMemoryAccess(self);
-        return 0;
-      }
-
-
-      static PyObject* MemoryAccess_str(PyObject* self) {
-        try {
-          std::stringstream str;
-          str << PyMemoryAccess_AsMemoryAccess(self);
-          return PyString_FromFormat("%s", str.str().c_str());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      //! MemoryAccess methods.
-      PyMethodDef MemoryAccess_callbacks[] = {
-        {"getAddress",          MemoryAccess_getAddress,         METH_NOARGS,      ""},
-        {"getBaseRegister",     MemoryAccess_getBaseRegister,    METH_NOARGS,      ""},
-        {"getBitSize",          MemoryAccess_getBitSize,         METH_NOARGS,      ""},
-        {"getBitvector",        MemoryAccess_getBitvector,       METH_NOARGS,      ""},
-        {"getDisplacement",     MemoryAccess_getDisplacement,    METH_NOARGS,      ""},
-        {"getIndexRegister",    MemoryAccess_getIndexRegister,   METH_NOARGS,      ""},
-        {"getLeaAst",           MemoryAccess_getLeaAst,          METH_NOARGS,      ""},
-        {"getScale",            MemoryAccess_getScale,           METH_NOARGS,      ""},
-        {"getSegmentRegister",  MemoryAccess_getSegmentRegister, METH_NOARGS,      ""},
-        {"getSize",             MemoryAccess_getSize,            METH_NOARGS,      ""},
-        {"getType",             MemoryAccess_getType,            METH_NOARGS,      ""},
-        {"isOverlapWith",       MemoryAccess_isOverlapWith,      METH_O,           ""},
-        {"setBaseRegister",     MemoryAccess_setBaseRegister,    METH_O,           ""},
-        {"setDisplacement",     MemoryAccess_setDisplacement,    METH_O,           ""},
-        {"setIndexRegister",    MemoryAccess_setIndexRegister,   METH_O,           ""},
-        {"setScale",            MemoryAccess_setScale,           METH_O,           ""},
-        {"setSegmentRegister",  MemoryAccess_setSegmentRegister, METH_O,           ""},
-        {nullptr,               nullptr,                         0,                nullptr}
-      };
-
-
-      PyTypeObject MemoryAccess_Type = {
-        PyObject_HEAD_INIT(&PyType_Type)
-        0,                                          /* ob_size */
-        "MemoryAccess",                             /* tp_name */
-        sizeof(MemoryAccess_Object),                /* tp_basicsize */
-        0,                                          /* tp_itemsize */
-        (destructor)MemoryAccess_dealloc,           /* tp_dealloc */
-        (printfunc)MemoryAccess_print,              /* tp_print */
-        0,                                          /* tp_getattr */
-        0,                                          /* tp_setattr */
-        0,                                          /* tp_compare */
-        0,                                          /* tp_repr */
-        0,                                          /* tp_as_number */
-        0,                                          /* tp_as_sequence */
-        0,                                          /* tp_as_mapping */
-        0,                                          /* tp_hash */
-        0,                                          /* tp_call */
-        (reprfunc)MemoryAccess_str,                 /* tp_str */
-        0,                                          /* tp_getattro */
-        0,                                          /* tp_setattro */
-        0,                                          /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT,                         /* tp_flags */
-        "MemoryAccess objects",                     /* tp_doc */
-        0,                                          /* tp_traverse */
-        0,                                          /* tp_clear */
-        0,                                          /* tp_richcompare */
-        0,                                          /* tp_weaklistoffset */
-        0,                                          /* tp_iter */
-        0,                                          /* tp_iternext */
-        MemoryAccess_callbacks,                     /* tp_methods */
-        0,                                          /* tp_members */
-        0,                                          /* tp_getset */
-        0,                                          /* tp_base */
-        0,                                          /* tp_dict */
-        0,                                          /* tp_descr_get */
-        0,                                          /* tp_descr_set */
-        0,                                          /* tp_dictoffset */
-        0,                                          /* tp_init */
-        0,                                          /* tp_alloc */
-        0,                                          /* tp_new */
-        0,                                          /* tp_free */
-        0,                                          /* tp_is_gc */
-        0,                                          /* tp_bases */
-        0,                                          /* tp_mro */
-        0,                                          /* tp_cache */
-        0,                                          /* tp_subclasses */
-        0,                                          /* tp_weaklist */
-        (destructor)MemoryAccess_dealloc,           /* tp_del */
-        0                                           /* tp_version_tag */
-      };
-
-
-      PyObject* PyMemoryAccess(const triton::arch::MemoryAccess& mem) {
-        MemoryAccess_Object* object;
-
-        PyType_Ready(&MemoryAccess_Type);
-        object = PyObject_NEW(MemoryAccess_Object, &MemoryAccess_Type);
-        if (object != NULL)
-          object->mem = new triton::arch::MemoryAccess(mem);
-
-        return (PyObject*)object;
+          .def("__str__",
+            [] (const triton::arch::MemoryAccess& mem) {
+              std::ostringstream stream;
+              stream << mem;
+              return stream.str();
+            });
       }
 
     }; /* python namespace */

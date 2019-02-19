@@ -8,9 +8,7 @@
 #if defined(__unix__) || defined(__APPLE__)
 
 #include <triton/pythonBindings.hpp>
-#include <triton/pythonUtils.hpp>
-#include <triton/pythonXFunctions.hpp>
-#include <triton/architecture.hpp>
+#include <triton/tritonTypes.hpp>
 #include <triton/unix.hpp>
 
 
@@ -362,19 +360,24 @@ namespace triton {
   namespace bindings {
     namespace python {
 
-      void initSyscall64Namespace(PyObject* syscallsDict64) {
-        PyDict_Clear(syscallsDict64);
+      void initSyscallEnum(pybind11::module& pyTriton) {
+        enum syscall32 {};
+        enum syscall64 {};
 
-        for (triton::uint32 i = 0; i < triton::os::unix::NB_SYSCALL64; ++i)
-          xPyDict_SetItemString(syscallsDict64, triton::os::unix::syscallmap64[i], PyLong_FromUint32(i));
-      }
-
-      void initSyscall32Namespace(PyObject* syscallsDict32) {
-        PyDict_Clear(syscallsDict32);
-
+        /* SYSCALL32 Enum */
         #if defined(__unix__)
-        for (triton::uint32 i = 0; i < triton::os::unix::NB_SYSCALL32; ++i)
-          xPyDict_SetItemString(syscallsDict32, triton::os::unix::syscallmap32[i], PyLong_FromUint32(i));
+        auto sys32 = pybind11::enum_<syscall32>(pyTriton, "SYSCALL32");
+        for (triton::uint32 i = 0; i < triton::os::unix::NB_SYSCALL32; ++i) {
+          sys32.value(triton::os::unix::syscallmap32[i], static_cast<syscall32>(i));
+        }
+        #endif
+
+        /* SYSCALL64 Enum */
+        #if defined(__unix__) || defined(__APPLE__)
+        auto sys64 = pybind11::enum_<syscall64>(pyTriton, "SYSCALL64");
+        for (triton::uint32 i = 0; i < triton::os::unix::NB_SYSCALL64; ++i) {
+          sys64.value(triton::os::unix::syscallmap64[i], static_cast<syscall64>(i));
+        }
         #endif
       }
 

@@ -6,9 +6,7 @@
 */
 
 #include <triton/pythonBindings.hpp>
-#include <triton/pythonUtils.hpp>
-#include <triton/pythonXFunctions.hpp>
-#include <triton/astRepresentation.hpp>
+#include <triton/astEnums.hpp>
 
 
 
@@ -46,9 +44,11 @@ namespace triton {
   namespace bindings {
     namespace python {
 
-      void initAstRepresentationNamespace(PyObject* astRepresentationDict) {
-        xPyDict_SetItemString(astRepresentationDict, "SMT",    PyLong_FromUint32(triton::ast::representations::SMT_REPRESENTATION));
-        xPyDict_SetItemString(astRepresentationDict, "PYTHON", PyLong_FromUint32(triton::ast::representations::PYTHON_REPRESENTATION));
+      void initAstRepresentationEnum(pybind11::module& pyTriton) {
+        /* AST_REPRESENTATION Enum */
+        pybind11::enum_<triton::ast::representations::mode_e>(pyTriton, "AST_REPRESENTATION")
+          .value("SMT",    triton::ast::representations::SMT_REPRESENTATION)
+          .value("PYTHON", triton::ast::representations::PYTHON_REPRESENTATION);
       }
 
     }; /* python namespace */

@@ -5,10 +5,7 @@
 **  This program is under the terms of the BSD License.
 */
 
-#include <triton/pythonObjects.hpp>
-#include <triton/pythonUtils.hpp>
-#include <triton/pythonXFunctions.hpp>
-#include <triton/exceptions.hpp>
+#include <triton/pythonBindings.hpp>
 #include <triton/symbolicExpression.hpp>
 
 
@@ -127,272 +124,55 @@ Sets a comment to the symbolic expression.
 
 
 
+using namespace triton::engines::symbolic;
+
 namespace triton {
   namespace bindings {
     namespace python {
 
-      //! SymbolicExpression destructor.
-      void SymbolicExpression_dealloc(PyObject* self) {
-        std::cout << std::flush;
-        PySymbolicExpression_AsSymbolicExpression(self) = nullptr; // decref the shared_ptr
-        Py_TYPE(self)->tp_free((PyObject*)self);
-      }
+      void initSymbolicExpressionObject(pybind11::module& pyTriton) {
+        pybind11::class_<SymbolicExpression, SharedSymbolicExpression>(pyTriton, "SymbolicExpression", "The SymbolicExpression class")
 
+          .def("getAst",        &SymbolicExpression::getAst)
+          .def("getComment",    &SymbolicExpression::getComment)
+          .def("getId",         &SymbolicExpression::getId)
+          .def("getNewAst",     &SymbolicExpression::getNewAst)
+          .def("getType",       &SymbolicExpression::getType)
+          .def("isMemory",      &SymbolicExpression::isMemory)
+          .def("isRegister",    &SymbolicExpression::isRegister)
+          .def("isSymbolized",  &SymbolicExpression::isSymbolized)
+          .def("setAst",        &SymbolicExpression::setAst)
+          .def("setComment",    &SymbolicExpression::setComment)
 
-      static PyObject* SymbolicExpression_getAst(PyObject* self, PyObject* noarg) {
-        try {
-          return PyAstNode(PySymbolicExpression_AsSymbolicExpression(self)->getAst());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
+          .def("getOrigin",
+            [] (const SharedSymbolicExpression& self) -> pybind11::object {
+              if (self->getType() == MEMORY_EXPRESSION)
+                return pybind11::cast(self->getOriginMemory());
 
+              if (self->getType() == REGISTER_EXPRESSION)
+                return pybind11::cast(self->getOriginRegister());
 
-      static PyObject* SymbolicExpression_getComment(PyObject* self, PyObject* noarg) {
-        try {
-          return Py_BuildValue("s", PySymbolicExpression_AsSymbolicExpression(self)->getComment().c_str());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
+              return pybind11::cast<pybind11::none>(Py_None);
+            })
 
+          .def("isTainted",
+            [] (const SharedSymbolicExpression& self) {
+              return self->isTainted;
+            })
 
-      static PyObject* SymbolicExpression_getId(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUsize(PySymbolicExpression_AsSymbolicExpression(self)->getId());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
+          .def("__repr__",
+            [] (const SharedSymbolicExpression& expr) {
+              std::ostringstream stream;
+              stream << expr;
+              return stream.str();
+            })
 
-
-      static PyObject* SymbolicExpression_getNewAst(PyObject* self, PyObject* noarg) {
-        try {
-          return PyAstNode(PySymbolicExpression_AsSymbolicExpression(self)->getNewAst());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* SymbolicExpression_getOrigin(PyObject* self, PyObject* noarg) {
-        try {
-          if (PySymbolicExpression_AsSymbolicExpression(self)->isMemory())
-            return PyMemoryAccess(PySymbolicExpression_AsSymbolicExpression(self)->getOriginMemory());
-
-          else if (PySymbolicExpression_AsSymbolicExpression(self)->isRegister())
-            return PyRegister(PySymbolicExpression_AsSymbolicExpression(self)->getOriginRegister());
-
-          Py_INCREF(Py_None);
-          return Py_None;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* SymbolicExpression_getType(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PySymbolicExpression_AsSymbolicExpression(self)->getType());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* SymbolicExpression_isMemory(PyObject* self, PyObject* noarg) {
-        try {
-          if (PySymbolicExpression_AsSymbolicExpression(self)->isMemory() == true)
-            Py_RETURN_TRUE;
-          Py_RETURN_FALSE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* SymbolicExpression_isRegister(PyObject* self, PyObject* noarg) {
-        try {
-          if (PySymbolicExpression_AsSymbolicExpression(self)->isRegister() == true)
-            Py_RETURN_TRUE;
-          Py_RETURN_FALSE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* SymbolicExpression_isSymbolized(PyObject* self, PyObject* noarg) {
-        try {
-          if (PySymbolicExpression_AsSymbolicExpression(self)->isSymbolized() == true)
-            Py_RETURN_TRUE;
-          Py_RETURN_FALSE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* SymbolicExpression_isTainted(PyObject* self, PyObject* noarg) {
-        try {
-          if (PySymbolicExpression_AsSymbolicExpression(self)->isTainted == true)
-            Py_RETURN_TRUE;
-          Py_RETURN_FALSE;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* SymbolicExpression_setAst(PyObject* self, PyObject* node) {
-        try {
-          if (!PyAstNode_Check(node))
-            return PyErr_Format(PyExc_TypeError, "SymbolicExpression::setAst(): Expected a AstNode as argument.");
-          PySymbolicExpression_AsSymbolicExpression(self)->setAst(PyAstNode_AsAstNode(node));
-          Py_INCREF(Py_None);
-        return Py_None;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* SymbolicExpression_setComment(PyObject* self, PyObject* comment) {
-        try {
-          if (!PyString_Check(comment))
-            return PyErr_Format(PyExc_TypeError, "SymbolicExpression::setComment(): Expected a string as argument.");
-          PySymbolicExpression_AsSymbolicExpression(self)->setComment(PyString_AsString(comment));
-          Py_INCREF(Py_None);
-          return Py_None;
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static int SymbolicExpression_print(PyObject* self) {
-        std::cout << PySymbolicExpression_AsSymbolicExpression(self);
-        return 0;
-      }
-
-
-      static PyObject* SymbolicExpression_str(PyObject* self) {
-        try {
-          std::stringstream str;
-          str << PySymbolicExpression_AsSymbolicExpression(self);
-          return PyString_FromFormat("%s", str.str().c_str());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* SymbolicExpression_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
-        return type->tp_alloc(type, 0);
-      }
-
-
-      static int SymbolicExpression_init(AstNode_Object *self, PyObject *args, PyObject *kwds) {
-        return 0;
-      }
-
-
-      //! SymbolicExpression methods.
-      PyMethodDef SymbolicExpression_callbacks[] = {
-        {"getAst",            SymbolicExpression_getAst,            METH_NOARGS,    ""},
-        {"getComment",        SymbolicExpression_getComment,        METH_NOARGS,    ""},
-        {"getId",             SymbolicExpression_getId,             METH_NOARGS,    ""},
-        {"getNewAst",         SymbolicExpression_getNewAst,         METH_NOARGS,    ""},
-        {"getOrigin",         SymbolicExpression_getOrigin,         METH_NOARGS,    ""},
-        {"getType",           SymbolicExpression_getType,           METH_NOARGS,    ""},
-        {"isMemory",          SymbolicExpression_isMemory,          METH_NOARGS,    ""},
-        {"isRegister",        SymbolicExpression_isRegister,        METH_NOARGS,    ""},
-        {"isSymbolized",      SymbolicExpression_isSymbolized,      METH_NOARGS,    ""},
-        {"isTainted",         SymbolicExpression_isTainted,         METH_NOARGS,    ""},
-        {"setAst",            SymbolicExpression_setAst,            METH_O,         ""},
-        {"setComment",        SymbolicExpression_setComment,        METH_O,         ""},
-        {nullptr,             nullptr,                              0,              nullptr}
-      };
-
-
-      PyTypeObject SymbolicExpression_Type = {
-        PyObject_HEAD_INIT(&PyType_Type)
-        0,                                          /* ob_size */
-        "SymbolicExpression",                       /* tp_name */
-        sizeof(SymbolicExpression_Object),          /* tp_basicsize */
-        0,                                          /* tp_itemsize */
-        (destructor)SymbolicExpression_dealloc,     /* tp_dealloc */
-        (printfunc)SymbolicExpression_print,        /* tp_print */
-        0,                                          /* tp_getattr */
-        0,                                          /* tp_setattr */
-        0,                                          /* tp_compare */
-        0,                                          /* tp_repr */
-        0,                                          /* tp_as_number */
-        0,                                          /* tp_as_sequence */
-        0,                                          /* tp_as_mapping */
-        0,                                          /* tp_hash */
-        0,                                          /* tp_call */
-        (reprfunc)SymbolicExpression_str,           /* tp_str */
-        0,                                          /* tp_getattro */
-        0,                                          /* tp_setattro */
-        0,                                          /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT,                         /* tp_flags */
-        "SymbolicExpression objects",               /* tp_doc */
-        0,                                          /* tp_traverse */
-        0,                                          /* tp_clear */
-        0,                                          /* tp_richcompare */
-        0,                                          /* tp_weaklistoffset */
-        0,                                          /* tp_iter */
-        0,                                          /* tp_iternext */
-        SymbolicExpression_callbacks,               /* tp_methods */
-        0,                                          /* tp_members */
-        0,                                          /* tp_getset */
-        0,                                          /* tp_base */
-        0,                                          /* tp_dict */
-        0,                                          /* tp_descr_get */
-        0,                                          /* tp_descr_set */
-        0,                                          /* tp_dictoffset */
-        (initproc)SymbolicExpression_init,          /* tp_init */
-        0,                                          /* tp_alloc */
-        (newfunc)SymbolicExpression_new,            /* tp_new */
-        0,                                          /* tp_free */
-        0,                                          /* tp_is_gc */
-        0,                                          /* tp_bases */
-        0,                                          /* tp_mro */
-        0,                                          /* tp_cache */
-        0,                                          /* tp_subclasses */
-        0,                                          /* tp_weaklist */
-        (destructor)SymbolicExpression_dealloc,     /* tp_del */
-        0                                           /* tp_version_tag */
-      };
-
-
-      PyObject* PySymbolicExpression(const triton::engines::symbolic::SharedSymbolicExpression& symExpr) {
-        if (symExpr == nullptr) {
-          Py_INCREF(Py_None);
-          return Py_None;
-        }
-
-        PyType_Ready(&SymbolicExpression_Type);
-        auto* object = (triton::bindings::python::SymbolicExpression_Object*)PyObject_CallObject((PyObject*)&SymbolicExpression_Type, nullptr);
-        if (object != NULL) {
-          object->symExpr = symExpr;
-        }
-
-        return (PyObject*)object;
+          .def("__str__",
+            [] (const SharedSymbolicExpression& expr) {
+              std::ostringstream stream;
+              stream << expr;
+              return stream.str();
+            });
       }
 
     }; /* python namespace */

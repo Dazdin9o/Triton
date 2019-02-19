@@ -7,9 +7,7 @@
 
 /* libTriton */
 #include <triton/pythonBindings.hpp>
-#include <triton/pythonObjects.hpp>
 #include <triton/pythonUtils.hpp>
-#include <triton/pythonXFunctions.hpp>
 
 #include <iostream>
 #include <stdexcept>

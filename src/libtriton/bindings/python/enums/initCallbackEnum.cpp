@@ -6,9 +6,7 @@
 */
 
 #include <triton/pythonBindings.hpp>
-#include <triton/pythonUtils.hpp>
-#include <triton/pythonXFunctions.hpp>
-#include <triton/callbacks.hpp>
+#include <triton/callbacksEnums.hpp>
 
 
 
@@ -60,12 +58,14 @@ namespace triton {
   namespace bindings {
     namespace python {
 
-      void initCallbackNamespace(PyObject* callbackDict) {
-        xPyDict_SetItemString(callbackDict, "GET_CONCRETE_MEMORY_VALUE",   PyLong_FromUint32(triton::callbacks::GET_CONCRETE_MEMORY_VALUE));
-        xPyDict_SetItemString(callbackDict, "GET_CONCRETE_REGISTER_VALUE", PyLong_FromUint32(triton::callbacks::GET_CONCRETE_REGISTER_VALUE));
-        xPyDict_SetItemString(callbackDict, "SET_CONCRETE_MEMORY_VALUE",   PyLong_FromUint32(triton::callbacks::SET_CONCRETE_MEMORY_VALUE));
-        xPyDict_SetItemString(callbackDict, "SET_CONCRETE_REGISTER_VALUE", PyLong_FromUint32(triton::callbacks::SET_CONCRETE_REGISTER_VALUE));
-        xPyDict_SetItemString(callbackDict, "SYMBOLIC_SIMPLIFICATION",     PyLong_FromUint32(triton::callbacks::SYMBOLIC_SIMPLIFICATION));
+      void initCallbackEnum(pybind11::module& pyTriton) {
+        /* CALLBACK Enum */
+        pybind11::enum_<triton::callbacks::callback_e>(pyTriton, "CALLBACK")
+          .value("GET_CONCRETE_MEMORY_VALUE",   triton::callbacks::GET_CONCRETE_MEMORY_VALUE)
+          .value("GET_CONCRETE_REGISTER_VALUE", triton::callbacks::GET_CONCRETE_REGISTER_VALUE)
+          .value("SET_CONCRETE_MEMORY_VALUE",   triton::callbacks::SET_CONCRETE_MEMORY_VALUE)
+          .value("SET_CONCRETE_REGISTER_VALUE", triton::callbacks::SET_CONCRETE_REGISTER_VALUE)
+          .value("SYMBOLIC_SIMPLIFICATION",     triton::callbacks::SYMBOLIC_SIMPLIFICATION);
       }
 
     }; /* python namespace */

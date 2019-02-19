@@ -5,11 +5,9 @@
 **  This program is under the terms of the BSD License.
 */
 
-#include <triton/pythonObjects.hpp>
+#include <triton/pythonBindings.hpp>
 #include <triton/pythonUtils.hpp>
-#include <triton/pythonXFunctions.hpp>
 #include <triton/bitsVector.hpp>
-#include <triton/exceptions.hpp>
 
 
 
@@ -68,147 +66,31 @@ namespace triton {
   namespace bindings {
     namespace python {
 
-      //! BitsVector destructor.
-      void BitsVector_dealloc(PyObject* self) {
-        std::cout << std::flush;
-        delete PyBitsVector_AsBitsVector(self);
-        Py_TYPE(self)->tp_free((PyObject*)self);
-      }
+      void initBitsVectorObject(pybind11::module& pyTriton) {
+        pybind11::class_<triton::arch::BitsVector>(pyTriton, "BitsVector", "The BitsVector class")
 
+          .def("getHigh",       &triton::arch::BitsVector::getHigh)
+          .def("getLow",        &triton::arch::BitsVector::getLow)
+          .def("getVectorSize", &triton::arch::BitsVector::getVectorSize)
 
-      static PyObject* BitsVector_getHigh(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PyBitsVector_AsBitsVector(self)->getHigh());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
+          .def("getMaxValue",
+            [] (const triton::arch::BitsVector& self) -> pybind11::object {
+              return pybind11::reinterpret_borrow<pybind11::object>(PyLong_FromUint512(self.getMaxValue()));
+            })
 
+          .def("__repr__",
+            [] (const triton::arch::BitsVector& bv) {
+              std::ostringstream stream;
+              stream << bv;
+              return stream.str();
+            })
 
-      static PyObject* BitsVector_getLow(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PyBitsVector_AsBitsVector(self)->getLow());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* BitsVector_getMaxValue(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint512(PyBitsVector_AsBitsVector(self)->getMaxValue());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static PyObject* BitsVector_getVectorSize(PyObject* self, PyObject* noarg) {
-        try {
-          return PyLong_FromUint32(PyBitsVector_AsBitsVector(self)->getVectorSize());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      static int BitsVector_print(PyObject* self) {
-        std::cout << PyBitsVector_AsBitsVector(self);
-        return 0;
-      }
-
-
-      static PyObject* BitsVector_str(PyObject* self) {
-        try {
-          std::stringstream str;
-          str << PyBitsVector_AsBitsVector(self);
-          return PyString_FromFormat("%s", str.str().c_str());
-        }
-        catch (const triton::exceptions::Exception& e) {
-          return PyErr_Format(PyExc_TypeError, "%s", e.what());
-        }
-      }
-
-
-      //! BitsVector methods.
-      PyMethodDef BitsVector_callbacks[] = {
-        {"getHigh",         BitsVector_getHigh,         METH_NOARGS,    ""},
-        {"getLow",          BitsVector_getLow,          METH_NOARGS,    ""},
-        {"getMaxValue",     BitsVector_getMaxValue,     METH_NOARGS,    ""},
-        {"getVectorSize",   BitsVector_getVectorSize,   METH_NOARGS,    ""},
-        {nullptr,           nullptr,                    0,              nullptr}
-      };
-
-
-      PyTypeObject BitsVector_Type = {
-        PyObject_HEAD_INIT(&PyType_Type)
-        0,                                          /* ob_size */
-        "BitsVector",                               /* tp_name */
-        sizeof(BitsVector_Object),                  /* tp_basicsize */
-        0,                                          /* tp_itemsize */
-        (destructor)BitsVector_dealloc,             /* tp_dealloc */
-        (printfunc)BitsVector_print,                /* tp_print */
-        0,                                          /* tp_getattr */
-        0,                                          /* tp_setattr */
-        0,                                          /* tp_compare */
-        0,                                          /* tp_repr */
-        0,                                          /* tp_as_number */
-        0,                                          /* tp_as_sequence */
-        0,                                          /* tp_as_mapping */
-        0,                                          /* tp_hash */
-        0,                                          /* tp_call */
-        (reprfunc)BitsVector_str,                   /* tp_str */
-        0,                                          /* tp_getattro */
-        0,                                          /* tp_setattro */
-        0,                                          /* tp_as_buffer */
-        Py_TPFLAGS_DEFAULT,                         /* tp_flags */
-        "BitsVector objects",                       /* tp_doc */
-        0,                                          /* tp_traverse */
-        0,                                          /* tp_clear */
-        0,                                          /* tp_richcompare */
-        0,                                          /* tp_weaklistoffset */
-        0,                                          /* tp_iter */
-        0,                                          /* tp_iternext */
-        BitsVector_callbacks,                       /* tp_methods */
-        0,                                          /* tp_members */
-        0,                                          /* tp_getset */
-        0,                                          /* tp_base */
-        0,                                          /* tp_dict */
-        0,                                          /* tp_descr_get */
-        0,                                          /* tp_descr_set */
-        0,                                          /* tp_dictoffset */
-        0,                                          /* tp_init */
-        0,                                          /* tp_alloc */
-        0,                                          /* tp_new */
-        0,                                          /* tp_free */
-        0,                                          /* tp_is_gc */
-        0,                                          /* tp_bases */
-        0,                                          /* tp_mro */
-        0,                                          /* tp_cache */
-        0,                                          /* tp_subclasses */
-        0,                                          /* tp_weaklist */
-        (destructor)BitsVector_dealloc,             /* tp_del */
-        0                                           /* tp_version_tag */
-      };
-
-
-      template PyObject* PyBitsVector(const triton::arch::Immediate& op);
-      template PyObject* PyBitsVector(const triton::arch::MemoryAccess& op);
-      template PyObject* PyBitsVector(const triton::arch::Register& op);
-      template <typename T>
-      PyObject* PyBitsVector(const T& op) {
-        BitsVector_Object* object;
-
-        PyType_Ready(&BitsVector_Type);
-        object = PyObject_NEW(BitsVector_Object, &BitsVector_Type);
-        if (object != NULL)
-          object->bv = new triton::arch::BitsVector(op);
-
-        return (PyObject*)object;
+          .def("__str__",
+            [] (const triton::arch::BitsVector& bv) {
+              std::ostringstream stream;
+              stream << bv;
+              return stream.str();
+            });
       }
 
     }; /* python namespace */

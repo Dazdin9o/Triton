@@ -6,8 +6,6 @@
 */
 
 #include <triton/pythonBindings.hpp>
-#include <triton/pythonUtils.hpp>
-#include <triton/pythonXFunctions.hpp>
 #include <triton/archEnums.hpp>
 
 
@@ -38,11 +36,13 @@ namespace triton {
   namespace bindings {
     namespace python {
 
-      void initOperandNamespace(PyObject* operandDict) {
-        xPyDict_SetItemString(operandDict, "INVALID",  PyLong_FromUint32(triton::arch::OP_INVALID));
-        xPyDict_SetItemString(operandDict, "IMM",      PyLong_FromUint32(triton::arch::OP_IMM));
-        xPyDict_SetItemString(operandDict, "MEM",      PyLong_FromUint32(triton::arch::OP_MEM));
-        xPyDict_SetItemString(operandDict, "REG",      PyLong_FromUint32(triton::arch::OP_REG));
+      void initOperandEnum(pybind11::module& pyTriton) {
+        /* OPERAND Enum */
+        pybind11::enum_<triton::arch::operand_e>(pyTriton, "OPERAND")
+          .value("OP_INVALID", triton::arch::OP_INVALID)
+          .value("OP_IMM",     triton::arch::OP_IMM)
+          .value("OP_REG",     triton::arch::OP_REG)
+          .value("OP_MEM",     triton::arch::OP_MEM);
       }
 
     }; /* python namespace */

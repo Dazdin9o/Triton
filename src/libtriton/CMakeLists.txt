@@ -112,23 +112,22 @@ endif()
 if(PYTHON_BINDINGS)
     set(LIBTRITON_PYTHON_SOURCE_FILES
         bindings/python/init.cpp
-        bindings/python/modules/tritonCallbacks.cpp
-        bindings/python/namespaces/initArchNamespace.cpp
-        bindings/python/namespaces/initAstNodeNamespace.cpp
-        bindings/python/namespaces/initAstRepresentationNamespace.cpp
-        bindings/python/namespaces/initCallbackNamespace.cpp
-        bindings/python/namespaces/initConditionsNamespace.cpp
-        bindings/python/namespaces/initCpuSizeNamespace.cpp
-        bindings/python/namespaces/initExtendNamespace.cpp
-        bindings/python/namespaces/initModeNamespace.cpp
-        bindings/python/namespaces/initOpcodesNamespace.cpp
-        bindings/python/namespaces/initOperandNamespace.cpp
-        bindings/python/namespaces/initPrefixesNamespace.cpp
-        bindings/python/namespaces/initRegNamespace.cpp
-        bindings/python/namespaces/initShiftsNamespace.cpp
-        bindings/python/namespaces/initSymbolicNamespace.cpp
-        bindings/python/namespaces/initSyscallNamespace.cpp
-        bindings/python/namespaces/initVersionNamespace.cpp
+        bindings/python/enums/initArchEnum.cpp
+        bindings/python/enums/initAstNodeEnum.cpp
+        bindings/python/enums/initAstRepresentationEnum.cpp
+        bindings/python/enums/initCallbackEnum.cpp
+        bindings/python/enums/initConditionEnum.cpp
+        bindings/python/enums/initCpuSizeEnum.cpp
+        bindings/python/enums/initExtendEnum.cpp
+        bindings/python/enums/initModeEnum.cpp
+        bindings/python/enums/initOpcodeEnum.cpp
+        bindings/python/enums/initOperandEnum.cpp
+        bindings/python/enums/initPrefixEnum.cpp
+        bindings/python/enums/initRegisterEnum.cpp
+        bindings/python/enums/initShiftEnum.cpp
+        bindings/python/enums/initSymbolicEnum.cpp
+        bindings/python/enums/initSyscallEnum.cpp
+        bindings/python/enums/initVersionEnum.cpp
         bindings/python/objects/pyAstContext.cpp
         bindings/python/objects/pyAstNode.cpp
         bindings/python/objects/pyBitsVector.cpp
@@ -137,11 +136,11 @@ if(PYTHON_BINDINGS)
         bindings/python/objects/pyMemoryAccess.cpp
         bindings/python/objects/pyPathConstraint.cpp
         bindings/python/objects/pyRegister.cpp
+        bindings/python/objects/pyShortcutRegister.cpp
         bindings/python/objects/pySolverModel.cpp
         bindings/python/objects/pySymbolicExpression.cpp
         bindings/python/objects/pySymbolicVariable.cpp
         bindings/python/objects/pyTritonContext.cpp
-        bindings/python/pyXFunctions.cpp
         bindings/python/utils.cpp
     )
 else()
@@ -266,4 +265,3 @@ if(PYTHON_BINDINGS)
         install (FILES ${CMAKE_CURRENT_BINARY_DIR}/triton${PYTHON_SUFFIX} DESTINATION ${PYTHON_SITE_PACKAGES})
     endif()
 endif()
-
