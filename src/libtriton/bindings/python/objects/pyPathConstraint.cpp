@@ -94,7 +94,7 @@ namespace triton {
 
       void initPathConstraintObject(pybind11::module& pyTriton) {
         pybind11::class_<triton::engines::symbolic::PathConstraint>(pyTriton, "PathConstraint", "The PathConstraint class")
-          .def("getBranchConstraints",      &triton::engines::symbolic::PathConstraint::getBranchConstraints)
+          .def("getBranchConstraints",      &triton::engines::symbolic::PathConstraint::getBranchConstraints, pybind11::return_value_policy::reference_internal)
           .def("getTakenAddress",           &triton::engines::symbolic::PathConstraint::getTakenAddress)
           .def("getTakenPathConstraintAst", &triton::engines::symbolic::PathConstraint::getTakenPathConstraintAst)
           .def("isMultipleBranches",        &triton::engines::symbolic::PathConstraint::isMultipleBranches);

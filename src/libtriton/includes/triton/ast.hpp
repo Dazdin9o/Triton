@@ -555,7 +555,7 @@ namespace triton {
     //! `(let ((<alias> <expr2>)) <expr3>)`
     class LetNode : public AbstractNode {
       public:
-        TRITON_EXPORT LetNode(std::string alias, const SharedAbstractNode& expr2, const SharedAbstractNode& expr3);
+        TRITON_EXPORT LetNode(const std::string& alias, const SharedAbstractNode& expr2, const SharedAbstractNode& expr3);
         TRITON_EXPORT void init(void);
         TRITON_EXPORT triton::uint512 hash(triton::uint32 deep) const;
     };
@@ -604,10 +604,10 @@ namespace triton {
         std::string value;
 
       public:
-        TRITON_EXPORT StringNode(std::string value, AstContext& ctxt);
+        TRITON_EXPORT StringNode(const std::string& value, AstContext& ctxt);
         TRITON_EXPORT void init(void);
         TRITON_EXPORT triton::uint512 hash(triton::uint32 deep) const;
-        TRITON_EXPORT std::string getString(void);
+        TRITON_EXPORT const std::string& getString(void);
     };
 
 

@@ -84,10 +84,10 @@ namespace triton {
       void initSymbolicVariableObject(pybind11::module& pyTriton) {
         pybind11::class_<SymbolicVariable, SharedSymbolicVariable>(pyTriton, "SymbolicVariable", "The SymbolicVariable class")
 
-          .def("getAlias",    &SymbolicVariable::getAlias)
-          .def("getComment",  &SymbolicVariable::getComment)
+          .def("getAlias",    &SymbolicVariable::getAlias, pybind11::return_value_policy::copy)
+          .def("getComment",  &SymbolicVariable::getComment, pybind11::return_value_policy::copy)
           .def("getId",       &SymbolicVariable::getId)
-          .def("getName",     &SymbolicVariable::getName)
+          .def("getName",     &SymbolicVariable::getName, pybind11::return_value_policy::copy)
           .def("getOrigin",   &SymbolicVariable::getOrigin)
           .def("getSize",     &SymbolicVariable::getSize)
           .def("getType",     &SymbolicVariable::getType)

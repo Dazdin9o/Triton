@@ -134,7 +134,7 @@ namespace triton {
         pybind11::class_<SymbolicExpression, SharedSymbolicExpression>(pyTriton, "SymbolicExpression", "The SymbolicExpression class")
 
           .def("getAst",        &SymbolicExpression::getAst, pybind11::return_value_policy::reference_internal)
-          .def("getComment",    &SymbolicExpression::getComment, pybind11::return_value_policy::reference_internal)
+          .def("getComment",    &SymbolicExpression::getComment, pybind11::return_value_policy::copy)
           .def("getId",         &SymbolicExpression::getId)
           .def("getNewAst",     &SymbolicExpression::getNewAst)
           .def("getType",       &SymbolicExpression::getType)
@@ -153,7 +153,7 @@ namespace triton {
                 return pybind11::cast(self->getOriginRegister());
 
               return pybind11::cast<pybind11::none>(Py_None);
-            }, pybind11::return_value_policy::reference_internal)
+            }, pybind11::return_value_policy::copy)
 
           .def("isTainted",
             [] (const SharedSymbolicExpression& self) {

@@ -145,7 +145,7 @@ namespace triton {
 
           .def("equalTo",               &triton::ast::AbstractNode::equalTo)
           .def("getBitvectorSize",      &triton::ast::AbstractNode::getBitvectorSize)
-          .def("getChildren",           &triton::ast::AbstractNode::getChildren)
+          .def("getChildren",           &triton::ast::AbstractNode::getChildren, pybind11::return_value_policy::reference_internal)
           .def("getParents",            &triton::ast::AbstractNode::getParents)
           .def("getType",               &triton::ast::AbstractNode::getType)
           .def("isLogical",             &triton::ast::AbstractNode::isLogical)
@@ -184,7 +184,7 @@ namespace triton {
 
               std::string s = reinterpret_cast<triton::ast::StringNode*>(self.get())->getString();
               return pybind11::cast(s);
-            })
+            }, pybind11::return_value_policy::copy)
 
           .def("getSymbolicExpression",
             [] (const triton::ast::SharedAbstractNode& self) -> pybind11::object {
@@ -193,7 +193,7 @@ namespace triton {
 
               auto expr = reinterpret_cast<triton::ast::ReferenceNode*>(self.get())->getSymbolicExpression();
               return pybind11::cast(expr);
-            })
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("getSymbolicVariable",
             [] (const triton::ast::SharedAbstractNode& self) -> pybind11::object {
@@ -202,7 +202,7 @@ namespace triton {
 
               auto var = reinterpret_cast<triton::ast::VariableNode*>(self.get())->getSymbolicVariable();
               return pybind11::cast(var);
-            })
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("__repr__",
             [] (const triton::ast::SharedAbstractNode& node) {

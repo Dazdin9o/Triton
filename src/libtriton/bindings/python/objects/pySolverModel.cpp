@@ -84,7 +84,7 @@ namespace triton {
         pybind11::class_<triton::engines::solver::SolverModel>(pyTriton, "SolverModel", "The SolverModel class")
 
           .def("getId",       &triton::engines::solver::SolverModel::getId)
-          .def("getVariable", &triton::engines::solver::SolverModel::getVariable)
+          .def("getVariable", &triton::engines::solver::SolverModel::getVariable, pybind11::return_value_policy::reference_internal)
 
           .def("getValue",
             [] (const triton::engines::solver::SolverModel& self) -> pybind11::object {

@@ -236,17 +236,17 @@ namespace triton {
           .def("getAddress",                &triton::arch::Instruction::getAddress)
           .def("getCodeCondition",          &triton::arch::Instruction::getCodeCondition)
           .def("getDisassembly",            &triton::arch::Instruction::getDisassembly)
-          .def("getLoadAccess",             &triton::arch::Instruction::getLoadAccess)
+          .def("getLoadAccess",             &triton::arch::Instruction::getLoadAccess, pybind11::return_value_policy::reference_internal)
           .def("getNextAddress",            &triton::arch::Instruction::getNextAddress)
           .def("getPrefix",                 &triton::arch::Instruction::getPrefix)
-          .def("getReadImmediates",         &triton::arch::Instruction::getReadImmediates)
-          .def("getReadRegisters",          &triton::arch::Instruction::getReadRegisters)
+          .def("getReadImmediates",         &triton::arch::Instruction::getReadImmediates, pybind11::return_value_policy::reference_internal)
+          .def("getReadRegisters",          &triton::arch::Instruction::getReadRegisters, pybind11::return_value_policy::reference_internal)
           .def("getSize",                   &triton::arch::Instruction::getSize)
-          .def("getStoreAccess",            &triton::arch::Instruction::getStoreAccess)
+          .def("getStoreAccess",            &triton::arch::Instruction::getStoreAccess, pybind11::return_value_policy::reference_internal)
           .def("getThreadId",               &triton::arch::Instruction::getThreadId)
           .def("getType",                   &triton::arch::Instruction::getType)
-          .def("getUndefinedRegisters",     &triton::arch::Instruction::getUndefinedRegisters)
-          .def("getWrittenRegisters",       &triton::arch::Instruction::getWrittenRegisters)
+          .def("getUndefinedRegisters",     &triton::arch::Instruction::getUndefinedRegisters, pybind11::return_value_policy::reference_internal)
+          .def("getWrittenRegisters",       &triton::arch::Instruction::getWrittenRegisters, pybind11::return_value_policy::reference_internal)
           .def("isBranch",                  &triton::arch::Instruction::isBranch)
           .def("isConditionTaken",          &triton::arch::Instruction::isConditionTaken)
           .def("isControlFlow",             &triton::arch::Instruction::isControlFlow)
@@ -267,12 +267,12 @@ namespace triton {
           .def("getOperands",
             [] (const triton::arch::Instruction& self) {
               return self.operands;
-            })
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("getSymbolicExpressions",
             [] (const triton::arch::Instruction& self) {
               return self.symbolicExpressions;
-            })
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("setOpcode",
             [] (triton::arch::Instruction& self, pybind11::bytes opcode) {

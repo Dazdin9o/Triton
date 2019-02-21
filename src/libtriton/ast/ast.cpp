@@ -2001,7 +2001,7 @@ namespace triton {
     /* ====== Let */
 
 
-    LetNode::LetNode(std::string alias, const SharedAbstractNode& expr2, const SharedAbstractNode& expr3): AbstractNode(LET_NODE, expr2->getContext()) {
+    LetNode::LetNode(const std::string& alias, const SharedAbstractNode& expr2, const SharedAbstractNode& expr3): AbstractNode(LET_NODE, expr2->getContext()) {
       this->addChild(ctxt.string(alias));
       this->addChild(expr2);
       this->addChild(expr3);
@@ -2157,7 +2157,7 @@ namespace triton {
     /* ====== String node */
 
 
-    StringNode::StringNode(std::string value, AstContext& ctxt): AbstractNode(STRING_NODE, ctxt) {
+    StringNode::StringNode(const std::string& value, AstContext& ctxt): AbstractNode(STRING_NODE, ctxt) {
       this->value = value;
     }
 
@@ -2173,7 +2173,7 @@ namespace triton {
     }
 
 
-    std::string StringNode::getString(void) {
+    const std::string& StringNode::getString(void) {
       return this->value;
     }
 
