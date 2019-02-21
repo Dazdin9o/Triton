@@ -16,8 +16,8 @@ class TestSymbolicExpression(unittest.TestCase):
         self.ctx.setArchitecture(ARCH.X86_64)
 
         self.inst1 = Instruction("\x48\x31\xd8") # xor rax, rbx
-        self.ctx.setConcreteRegisterValue(self.ctx.registers.al, 0x10)
-        self.ctx.setConcreteRegisterValue(self.ctx.registers.bl, 0x55)
+        self.ctx.setConcreteRegisterValue(self.ctx.registers.x86_al, 0x10)
+        self.ctx.setConcreteRegisterValue(self.ctx.registers.x86_bl, 0x55)
 
         self.inst2 = Instruction("\x48\x89\x03") # mov [rbx], rax
 

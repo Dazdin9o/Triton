@@ -16,7 +16,7 @@ class TestRAXRegister(unittest.TestCase):
         """Define arch and register to check."""
         self.ctx = TritonContext()
         self.ctx.setArchitecture(ARCH.X86_64)
-        self.reg = self.ctx.registers.rax
+        self.reg = self.ctx.registers.x86_rax
 
     def test_name(self):
         """Check register name."""
@@ -63,7 +63,7 @@ class TestAHRegister(unittest.TestCase):
         """Define arch and register to check."""
         self.ctx = TritonContext()
         self.ctx.setArchitecture(ARCH.X86_64)
-        self.reg = self.ctx.registers.ah
+        self.reg = self.ctx.registers.x86_ah
 
     def test_size(self):
         """Check register size."""
@@ -80,7 +80,7 @@ class TestAHRegister(unittest.TestCase):
         self.assertEqual(self.ctx.getParentRegister(self.reg).getName(), "rax")
 
         self.ctx.setArchitecture(ARCH.X86)
-        self.reg = self.ctx.registers.ah
+        self.reg = self.ctx.registers.x86_ah
         self.assertEqual(self.ctx.getParentRegister(self.reg).getName(), "eax")
         self.assertEqual(self.ctx.getParentRegister(self.reg).getBitSize(), 32)
 
@@ -97,17 +97,17 @@ class TestXmmRegister(unittest.TestCase):
     def test_xmm_on_x86(self):
         """Check xmm on 32 bits arch."""
         self.ctx.setArchitecture(ARCH.X86)
-        xmm = self.ctx.registers.xmm1
+        xmm = self.ctx.registers.x86_xmm1
         self.assertEqual(xmm.getBitSize(), 128)
 
     def test_ymm(self):
         """Check ymm on 64 bits arch."""
-        ymm = self.ctx.registers.ymm1
+        ymm = self.ctx.registers.x86_ymm1
         self.assertEqual(ymm.getBitSize(), 256)
 
     def test_zmm(self):
         """Check zmm on 64 bits arch."""
-        zmm = self.ctx.registers.zmm2
+        zmm = self.ctx.registers.x86_zmm2
         self.assertEqual(zmm.getBitSize(), 512)
 
 
@@ -122,7 +122,7 @@ class TestRegisterValues(unittest.TestCase):
 
     def test_set_concrete_value(self):
         """Check register value modification."""
-        for reg in (REG.X86_64.AH, REG.X86_64.AL):
+        for reg in (REG.X86_AH, REG.X86_AL):
             # OK
             reg = self.ctx.getRegister(reg)
             self.ctx.setConcreteRegisterValue(reg, 0xff)
@@ -131,22 +131,22 @@ class TestRegisterValues(unittest.TestCase):
             with self.assertRaises(Exception):
                 self.ctx.setConcreteRegisterValue(reg, 0xff+1)
 
-        reg = self.ctx.registers.zf
+        reg = self.ctx.registers.x86_zf
         self.ctx.setConcreteRegisterValue(reg, 1)
         with self.assertRaises(Exception):
             self.ctx.setConcreteRegisterValue(reg, 2)
 
     def test_overlap(self):
         """Check register overlapping."""
-        self.assertTrue(self.ctx.registers.ax.isOverlapWith(self.ctx.registers.eax), "overlap with upper")
-        self.assertTrue(self.ctx.registers.ax.isOverlapWith(self.ctx.registers.rax), "overlap with parent")
-        self.assertTrue(self.ctx.registers.rax.isOverlapWith(self.ctx.registers.ax), "overlap with lower")
-        self.assertFalse(self.ctx.registers.ah.isOverlapWith(self.ctx.registers.al))
-        self.assertTrue(self.ctx.registers.ah.isOverlapWith(self.ctx.registers.eax))
-        self.assertTrue(self.ctx.registers.eax.isOverlapWith(self.ctx.registers.ah))
-        self.assertTrue(self.ctx.registers.ax.isOverlapWith(self.ctx.registers.al))
-        self.assertTrue(self.ctx.registers.al.isOverlapWith(self.ctx.registers.ax))
-        self.assertFalse(self.ctx.registers.eax.isOverlapWith(self.ctx.registers.edx))
+        self.assertTrue(self.ctx.registers.x86_ax.isOverlapWith(self.ctx.registers.x86_eax), "overlap with upper")
+        self.assertTrue(self.ctx.registers.x86_ax.isOverlapWith(self.ctx.registers.x86_rax), "overlap with parent")
+        self.assertTrue(self.ctx.registers.x86_rax.isOverlapWith(self.ctx.registers.x86_ax), "overlap with lower")
+        self.assertFalse(self.ctx.registers.x86_ah.isOverlapWith(self.ctx.registers.x86_al))
+        self.assertTrue(self.ctx.registers.x86_ah.isOverlapWith(self.ctx.registers.x86_eax))
+        self.assertTrue(self.ctx.registers.x86_eax.isOverlapWith(self.ctx.registers.x86_ah))
+        self.assertTrue(self.ctx.registers.x86_ax.isOverlapWith(self.ctx.registers.x86_al))
+        self.assertTrue(self.ctx.registers.x86_al.isOverlapWith(self.ctx.registers.x86_ax))
+        self.assertFalse(self.ctx.registers.x86_eax.isOverlapWith(self.ctx.registers.x86_edx))
 
 
 class TestAArch64Registers(unittest.TestCase):
@@ -171,17 +171,17 @@ class TestAArch64Registers(unittest.TestCase):
             self.assertEqual(self.ctx.getConcreteRegisterValue(reg), 0)
 
         regs = [
-            self.ctx.registers.w0, self.ctx.registers.w1, self.ctx.registers.w2,
-            self.ctx.registers.w3, self.ctx.registers.w4, self.ctx.registers.w5,
-            self.ctx.registers.w6, self.ctx.registers.w7, self.ctx.registers.w8,
-            self.ctx.registers.w9, self.ctx.registers.w10, self.ctx.registers.w11,
-            self.ctx.registers.w12, self.ctx.registers.w13, self.ctx.registers.w14,
-            self.ctx.registers.w15, self.ctx.registers.w16, self.ctx.registers.w17,
-            self.ctx.registers.w18, self.ctx.registers.w19, self.ctx.registers.w20,
-            self.ctx.registers.w21, self.ctx.registers.w22, self.ctx.registers.w23,
-            self.ctx.registers.w24, self.ctx.registers.w25, self.ctx.registers.w26,
-            self.ctx.registers.w27, self.ctx.registers.w28, self.ctx.registers.w29,
-            self.ctx.registers.w30, self.ctx.registers.wsp, self.ctx.registers.spsr,
+            self.ctx.registers.aarch64_w0, self.ctx.registers.aarch64_w1, self.ctx.registers.aarch64_w2,
+            self.ctx.registers.aarch64_w3, self.ctx.registers.aarch64_w4, self.ctx.registers.aarch64_w5,
+            self.ctx.registers.aarch64_w6, self.ctx.registers.aarch64_w7, self.ctx.registers.aarch64_w8,
+            self.ctx.registers.aarch64_w9, self.ctx.registers.aarch64_w10, self.ctx.registers.aarch64_w11,
+            self.ctx.registers.aarch64_w12, self.ctx.registers.aarch64_w13, self.ctx.registers.aarch64_w14,
+            self.ctx.registers.aarch64_w15, self.ctx.registers.aarch64_w16, self.ctx.registers.aarch64_w17,
+            self.ctx.registers.aarch64_w18, self.ctx.registers.aarch64_w19, self.ctx.registers.aarch64_w20,
+            self.ctx.registers.aarch64_w21, self.ctx.registers.aarch64_w22, self.ctx.registers.aarch64_w23,
+            self.ctx.registers.aarch64_w24, self.ctx.registers.aarch64_w25, self.ctx.registers.aarch64_w26,
+            self.ctx.registers.aarch64_w27, self.ctx.registers.aarch64_w28, self.ctx.registers.aarch64_w29,
+            self.ctx.registers.aarch64_w30, self.ctx.registers.aarch64_wsp, self.ctx.registers.aarch64_spsr,
         ]
 
         for reg in regs:

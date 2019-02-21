@@ -19,9 +19,19 @@ class TestMemory(unittest.TestCase):
 
     def test_address(self):
         """Check address data is correct."""
+        self.assertEqual(self.mem.getAddress(), 0x400f4d3)
+
         mem = MemoryAccess(0x1122334455667788, 8)
         self.assertEqual(mem.getAddress(), 0x1122334455667788)
-        self.assertEqual(self.mem.getAddress(), 0x400f4d3)
+
+        mem = MemoryAccess(-1, 8)
+        self.assertEqual(mem.getAddress(), 0xffffffffffffffff)
+
+        mem = MemoryAccess(-2, 8)
+        self.assertEqual(mem.getAddress(), 0xfffffffffffffffe)
+
+        mem = MemoryAccess(-3, 8)
+        self.assertEqual(mem.getAddress(), 0xfffffffffffffffd)
 
     def test_bit_size(self):
         """Check bit size of the accessed memory."""
@@ -38,19 +48,19 @@ class TestMemory(unittest.TestCase):
     def test_base_register(self):
         """Check base register modification."""
         self.assertFalse(self.Triton.isRegisterValid(self.mem.getBaseRegister()))
-        self.mem.setBaseRegister(self.Triton.registers.rax)
+        self.mem.setBaseRegister(self.Triton.registers.x86_rax)
         self.assertEqual(self.mem.getBaseRegister().getName(), "rax")
 
     def test_index_register(self):
         """Check index register modification."""
         self.assertFalse(self.Triton.isRegisterValid(self.mem.getIndexRegister()))
-        self.mem.setIndexRegister(self.Triton.registers.rcx)
+        self.mem.setIndexRegister(self.Triton.registers.x86_rcx)
         self.assertEqual(self.mem.getIndexRegister().getName(), "rcx")
 
     def test_segment_register(self):
         """Check segment register modification."""
         self.assertFalse(self.Triton.isRegisterValid(self.mem.getSegmentRegister()))
-        self.mem.setSegmentRegister(self.Triton.registers.fs)
+        self.mem.setSegmentRegister(self.Triton.registers.x86_fs)
         self.assertEqual(self.mem.getSegmentRegister().getName(), "fs")
 
     def test_scale(self):
@@ -77,4 +87,3 @@ class TestMemory(unittest.TestCase):
         self.assertFalse(MemoryAccess(0x1000, 4).isOverlapWith(MemoryAccess(0x1004, 4)))
         self.assertFalse(MemoryAccess(0x1000, 4).isOverlapWith(MemoryAccess(0x10000, 4)))
         self.assertFalse(MemoryAccess(0x10000, 4).isOverlapWith(MemoryAccess(0x1000, 4)))
-

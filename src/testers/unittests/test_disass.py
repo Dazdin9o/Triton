@@ -44,7 +44,7 @@ class TestAArch64Disass(unittest.TestCase):
         self.assertEqual(op0.getName(), "w1")
         self.assertEqual(op0.getSize(), CPUSIZE.DWORD)
         self.assertEqual(op1.getSize(), CPUSIZE.DWORD)
-        self.assertEqual(op1.getBaseRegister(), self.ctx.registers.sp)
+        self.assertEqual(op1.getBaseRegister(), self.ctx.registers.aarch64_sp)
         self.assertEqual(op1.getDisplacement().getValue(), 8)
         self.assertEqual(op1.getDisplacement().getSize(), CPUSIZE.QWORD)
 

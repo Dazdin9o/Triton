@@ -4,7 +4,7 @@
 
 import unittest
 
-from triton import ARCH, CPUSIZE, Immediate, OPERAND, TritonContext, SHIFT
+from triton import ARCH, CPU_SIZE, Immediate, OPERAND, TritonContext, SHIFT
 
 
 class TestImmediate8(unittest.TestCase):
@@ -15,7 +15,7 @@ class TestImmediate8(unittest.TestCase):
         """Define the arch and Immediate to test."""
         self.Triton = TritonContext()
         self.Triton.setArchitecture(ARCH.X86_64)
-        self.imm = Immediate(0x12, CPUSIZE.BYTE)
+        self.imm = Immediate(0x12, CPU_SIZE.BYTE)
 
     def test_bit_size(self):
         """Check the bitsize."""
@@ -46,7 +46,7 @@ class TestImmediate16(unittest.TestCase):
         """Define the arch and Immediate to test."""
         self.Triton = TritonContext()
         self.Triton.setArchitecture(ARCH.X86_64)
-        self.imm = Immediate(0x1234, CPUSIZE.WORD)
+        self.imm = Immediate(0x1234, CPU_SIZE.WORD)
 
     def test_bit_size(self):
         """Check the bitsize."""
@@ -59,13 +59,13 @@ class TestImmediate16(unittest.TestCase):
     def test_value(self):
         """Check immediate value with different size."""
         self.assertEqual(self.imm.getValue(), 0x1234)
-        self.imm = Immediate(-4, CPUSIZE.BYTE)
+        self.imm = Immediate(-4, CPU_SIZE.BYTE)
         self.assertEqual(self.imm.getValue(), 0xfc)
-        self.imm = Immediate(-4, CPUSIZE.WORD)
+        self.imm = Immediate(-4, CPU_SIZE.WORD)
         self.assertEqual(self.imm.getValue(), 0xfffc)
-        self.imm = Immediate(-4, CPUSIZE.DWORD)
+        self.imm = Immediate(-4, CPU_SIZE.DWORD)
         self.assertEqual(self.imm.getValue(), 0xfffffffc)
-        self.imm = Immediate(-4, CPUSIZE.QWORD)
+        self.imm = Immediate(-4, CPU_SIZE.QWORD)
         self.assertEqual(self.imm.getValue(), 0xfffffffffffffffc)
 
     def test_type(self):
@@ -81,7 +81,7 @@ class TestImmediate32(unittest.TestCase):
         """Define the arch and Immediate to test."""
         self.Triton = TritonContext()
         self.Triton.setArchitecture(ARCH.X86_64)
-        self.imm = Immediate(0x12345678, CPUSIZE.DWORD)
+        self.imm = Immediate(0x12345678, CPU_SIZE.DWORD)
 
     def test_bit_size(self):
         """Check the bitsize."""
@@ -108,7 +108,7 @@ class TestImmediate64(unittest.TestCase):
         """Define the arch and Immediate to test."""
         self.Triton = TritonContext()
         self.Triton.setArchitecture(ARCH.X86_64)
-        self.imm = Immediate(0x0123456789abcdef, CPUSIZE.QWORD)
+        self.imm = Immediate(0x0123456789abcdef, CPU_SIZE.QWORD)
 
     def test_bit_size(self):
         """Check the bitsize."""
@@ -137,21 +137,21 @@ class TestNegativeImmediate(unittest.TestCase):
 
     def test_value(self):
         """Check immediate value with different size."""
-        self.imm = Immediate(-4, CPUSIZE.BYTE)
+        self.imm = Immediate(-4, CPU_SIZE.BYTE)
         self.assertEqual(self.imm.getValue(), 0xfc)
 
-        self.imm = Immediate(-4, CPUSIZE.WORD)
+        self.imm = Immediate(-4, CPU_SIZE.WORD)
         self.assertEqual(self.imm.getValue(), 0xfffc)
 
-        self.imm = Immediate(-4, CPUSIZE.DWORD)
+        self.imm = Immediate(-4, CPU_SIZE.DWORD)
         self.assertEqual(self.imm.getValue(), 0xfffffffc)
 
-        self.imm = Immediate(-4, CPUSIZE.QWORD)
+        self.imm = Immediate(-4, CPU_SIZE.QWORD)
         self.assertEqual(self.imm.getValue(), 0xfffffffffffffffc)
 
-        self.imm = Immediate(0x7123456789abcdef, CPUSIZE.QWORD)
+        self.imm = Immediate(0x7123456789abcdef, CPU_SIZE.QWORD)
         self.assertEqual(self.imm.getValue(), 0x7123456789abcdef)
 
-        self.imm = Immediate(0x8123456789abcdef, CPUSIZE.QWORD)
+        self.imm = Immediate(0x8123456789abcdef, CPU_SIZE.QWORD)
         self.assertEqual(self.imm.getValue(), 0x8123456789abcdef)
 

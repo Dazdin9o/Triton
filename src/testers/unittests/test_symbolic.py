@@ -28,7 +28,7 @@ class TestSymbolic(unittest.TestCase):
         inst.setOpcode("\x48\xFF\xC0")
         self.Triton.processing(inst)
 
-        self.assertEqual(self.Triton.getSymbolicRegisterValue(self.Triton.registers.rax), 1)
+        self.assertEqual(self.Triton.getSymbolicRegisterValue(self.Triton.registers.x86_rax), 1)
 
         # This call triton::api.backupSymbolicEngine()
         self.Triton.enableSymbolicEngine(False)
@@ -38,9 +38,9 @@ class TestSymbolic(unittest.TestCase):
         inst.setOpcode("\x48\xFF\xC0")
         self.Triton.processing(inst)
 
-        self.assertEqual(self.Triton.getConcreteRegisterValue(self.Triton.registers.rax), 2, "concrete value is updated")
-        self.assertEqual(self.Triton.getSymbolicRegisterValue(self.Triton.registers.rax), 1)
-        self.assertEqual(self.Triton.getSymbolicRegisterValue(self.Triton.registers.rax), 1, "Symbolic value is not update")
+        self.assertEqual(self.Triton.getConcreteRegisterValue(self.Triton.registers.x86_rax), 2, "concrete value is updated")
+        self.assertEqual(self.Triton.getSymbolicRegisterValue(self.Triton.registers.x86_rax), 1)
+        self.assertEqual(self.Triton.getSymbolicRegisterValue(self.Triton.registers.x86_rax), 1, "Symbolic value is not update")
 
         # Try to reset engine after a backup to test if the bug #385 is fixed.
         self.Triton.reset()
@@ -80,14 +80,14 @@ class TestSymbolic(unittest.TestCase):
     def test_bind_expr_to_register(self):
         """Check symbolic expression binded to register."""
         expr1 = self.Triton.newSymbolicExpression(self.astCtxt.bv(0x11223344, 64))
-        self.Triton.assignSymbolicExpressionToRegister(expr1, self.Triton.registers.rax)
+        self.Triton.assignSymbolicExpressionToRegister(expr1, self.Triton.registers.x86_rax)
 
-        self.assertEqual(self.Triton.getSymbolicRegisterValue(self.Triton.registers.rax), 0x11223344)
+        self.assertEqual(self.Triton.getSymbolicRegisterValue(self.Triton.registers.x86_rax), 0x11223344)
 
         expr1 = self.Triton.newSymbolicExpression(self.astCtxt.bv(0x11223344, 32))
         with self.assertRaises(Exception):
             # Incorrect size
-            self.Triton.assignSymbolicExpressionToRegister(expr1, self.Triton.registers.rax)
+            self.Triton.assignSymbolicExpressionToRegister(expr1, self.Triton.registers.x86_rax)
 
 
 class TestSymbolicBuilding(unittest.TestCase):
@@ -109,24 +109,24 @@ class TestSymbolicBuilding(unittest.TestCase):
     def test_build_register(self):
         """Check symbolic register has correct size and location."""
         expr1 = self.Triton.newSymbolicExpression(self.astCtxt.bv(0x1122334455667788, CPUSIZE.QWORD_BIT))
-        self.Triton.assignSymbolicExpressionToRegister(expr1, self.Triton.registers.rax)
+        self.Triton.assignSymbolicExpressionToRegister(expr1, self.Triton.registers.x86_rax)
 
-        node = self.Triton.getRegisterAst(self.Triton.registers.rax)
+        node = self.Triton.getRegisterAst(self.Triton.registers.x86_rax)
         self.assertEqual(node.evaluate(), 0x1122334455667788)
         self.assertEqual(node.getBitvectorSize(), CPUSIZE.QWORD_BIT)
 
-        node = self.Triton.getRegisterAst(self.Triton.registers.eax)
+        node = self.Triton.getRegisterAst(self.Triton.registers.x86_eax)
         self.assertEqual(node.evaluate(), 0x55667788)
         self.assertEqual(node.getBitvectorSize(), CPUSIZE.DWORD_BIT)
 
-        node = self.Triton.getRegisterAst(self.Triton.registers.ax)
+        node = self.Triton.getRegisterAst(self.Triton.registers.x86_ax)
         self.assertEqual(node.evaluate(), 0x7788)
         self.assertEqual(node.getBitvectorSize(), CPUSIZE.WORD_BIT)
 
-        node = self.Triton.getRegisterAst(self.Triton.registers.ah)
+        node = self.Triton.getRegisterAst(self.Triton.registers.x86_ah)
         self.assertEqual(node.evaluate(), 0x77)
         self.assertEqual(node.getBitvectorSize(), CPUSIZE.BYTE_BIT)
 
-        node = self.Triton.getRegisterAst(self.Triton.registers.al)
+        node = self.Triton.getRegisterAst(self.Triton.registers.x86_al)
         self.assertEqual(node.evaluate(), 0x88)
         self.assertEqual(node.getBitvectorSize(), CPUSIZE.BYTE_BIT)

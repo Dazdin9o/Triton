@@ -39,10 +39,10 @@ namespace triton {
       void initOperandEnum(pybind11::module& pyTriton) {
         /* OPERAND Enum */
         pybind11::enum_<triton::arch::operand_e>(pyTriton, "OPERAND")
-          .value("OP_INVALID", triton::arch::OP_INVALID)
-          .value("OP_IMM",     triton::arch::OP_IMM)
-          .value("OP_REG",     triton::arch::OP_REG)
-          .value("OP_MEM",     triton::arch::OP_MEM);
+          .value("INVALID", triton::arch::OP_INVALID)
+          .value("IMM",     triton::arch::OP_IMM)
+          .value("REG",     triton::arch::OP_REG)
+          .value("MEM",     triton::arch::OP_MEM);
       }
 
     }; /* python namespace */

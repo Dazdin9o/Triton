@@ -71,13 +71,13 @@ class TestSymbolicVariable(unittest.TestCase):
         self.assertEqual(self.v3.getId(), 3)
 
     def test_model_with_alias(self):
-        var = self.ctx.convertRegisterToSymbolicVariable(self.ctx.registers.rax)
+        var = self.ctx.convertRegisterToSymbolicVariable(self.ctx.registers.x86_rax)
         var.setAlias("rax")
         inst = Instruction("\x48\x31\xd8")
         self.ctx.processing(inst)
 
         ast = self.ctx.getAstContext()
-        rax_ast = ast.unrollAst(self.ctx.getRegisterAst(self.ctx.registers.rax))
+        rax_ast = ast.unrollAst(self.ctx.getRegisterAst(self.ctx.registers.x86_rax))
         model = self.ctx.getModel(rax_ast == 0x41)
         self.assertEqual(str(rax_ast), "(bvxor rax (_ bv0 64))")
         self.assertEqual(str(model[4]), "rax:64 = 0x41")

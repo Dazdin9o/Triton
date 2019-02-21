@@ -151,7 +151,8 @@ namespace triton {
         pybind11::class_<triton::arch::MemoryAccess>(pyTriton, "MemoryAccess", "The MemoryAccess class")
 
           .def(pybind11::init<>())
-          .def(pybind11::init<triton::uint64, triton::uint32>())
+          .def(pybind11::init<triton::sint64, triton::uint32>())
+          .def(pybind11::init<pybind11::int_, triton::uint32>())
 
           .def("getAddress",          &triton::arch::MemoryAccess::getAddress)
           .def("getBaseRegister",     &triton::arch::MemoryAccess::getBaseRegister)

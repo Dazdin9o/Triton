@@ -6,13 +6,14 @@
 */
 
 #include <triton/pythonBindings.hpp>
+#include <triton/cpuSize.hpp>
 #include <triton/immediate.hpp>
 
 
 
 /* setup doctest context
 
->>> from triton import TritonContext, ARCH, Instruction, Immediate, CPUSIZE
+>>> from triton import TritonContext, ARCH, Instruction, Immediate, CPU_SIZE
 
 >>> ctxt = TritonContext()
 >>> ctxt.setArchitecture(ARCH.X86_64)
@@ -55,7 +56,7 @@ True
 \subsection py_Immediate_constructor Constructor
 
 ~~~~~~~~~~~~~{.py}
->>> imm = Immediate(0x1234, CPUSIZE.WORD)
+>>> imm = Immediate(0x1234, CPU_SIZE.WORD)
 >>> print imm
 0x1234:16 bv[15..0]
 >>> imm.getValue()
@@ -108,9 +109,9 @@ namespace triton {
 
       void initImmediateObject(pybind11::module& pyTriton) {
         pybind11::class_<triton::arch::Immediate>(pyTriton, "Immediate", "The Immediate class")
-
           .def(pybind11::init<>())
-          .def(pybind11::init<triton::uint64, triton::uint32>())
+          .def(pybind11::init<triton::sint64, triton::uint32>())
+          .def(pybind11::init<pybind11::int_, triton::uint32>())
 
           .def("getBitSize",    &triton::arch::Immediate::getBitSize)
           .def("getShiftType",  &triton::arch::Immediate::getShiftType)

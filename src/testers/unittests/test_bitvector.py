@@ -15,7 +15,7 @@ class TestRAXBitvector(unittest.TestCase):
         """Define the arch."""
         self.Triton = TritonContext()
         self.Triton.setArchitecture(ARCH.X86_64)
-        self.bv = self.Triton.registers.rax.getBitvector()
+        self.bv = self.Triton.registers.x86_rax.getBitvector()
 
     def test_high(self):
         """Check the highest bit."""
@@ -42,7 +42,7 @@ class TestCHBitvector(unittest.TestCase):
         """Define the arch."""
         self.Triton = TritonContext()
         self.Triton.setArchitecture(ARCH.X86_64)
-        self.bv = self.Triton.registers.ch.getBitvector()
+        self.bv = self.Triton.registers.x86_ch.getBitvector()
 
     def test_high(self):
         """Check the highest bit."""
@@ -69,7 +69,7 @@ class TestDLBitvector(unittest.TestCase):
         """Define the arch."""
         self.Triton = TritonContext()
         self.Triton.setArchitecture(ARCH.X86_64)
-        self.bv = self.Triton.registers.dl.getBitvector()
+        self.bv = self.Triton.registers.x86_dl.getBitvector()
 
     def test_high(self):
         """Check the highest bit."""

@@ -74,23 +74,22 @@ namespace triton {
     namespace python {
 
       void initCpuSizeEnum(pybind11::module& pyTriton) {
-        enum cpuSize {};
-
-        pybind11::enum_<cpuSize>(pyTriton, "CPU_SIZE")
-          .value("BYTE",        static_cast<cpuSize>(BYTE_SIZE))
-          .value("BYTE_BIT",    static_cast<cpuSize>(BYTE_SIZE_BIT))
-          .value("WORD",        static_cast<cpuSize>(WORD_SIZE))
-          .value("WORD_BIT",    static_cast<cpuSize>(WORD_SIZE_BIT))
-          .value("DWORD",       static_cast<cpuSize>(DWORD_SIZE))
-          .value("DWORD_BIT",   static_cast<cpuSize>(DWORD_SIZE_BIT))
-          .value("QWORD",       static_cast<cpuSize>(QWORD_SIZE))
-          .value("QWORD_BIT",   static_cast<cpuSize>(QWORD_SIZE_BIT))
-          .value("DQWORD",      static_cast<cpuSize>(DQWORD_SIZE))
-          .value("DQWORD_BIT",  static_cast<cpuSize>(DQWORD_SIZE_BIT))
-          .value("QQWORD",      static_cast<cpuSize>(QQWORD_SIZE))
-          .value("QQWORD_BIT",  static_cast<cpuSize>(QQWORD_SIZE_BIT))
-          .value("DQQWORD",     static_cast<cpuSize>(DQQWORD_SIZE))
-          .value("DQQWORD_BIT", static_cast<cpuSize>(DQQWORD_SIZE_BIT));
+        /* Define a submodule */
+        pybind11::module cpusize = pyTriton.def_submodule("CPU_SIZE", "");
+        cpusize.attr("BYTE") = BYTE_SIZE;
+        cpusize.attr("BYTE_BIT") = BYTE_SIZE_BIT;
+        cpusize.attr("WORD") = WORD_SIZE;
+        cpusize.attr("WORD_BIT") = WORD_SIZE_BIT;
+        cpusize.attr("DWORD") = DWORD_SIZE;
+        cpusize.attr("DWORD_BIT") = DWORD_SIZE_BIT;
+        cpusize.attr("QWORD") = QWORD_SIZE;
+        cpusize.attr("QWORD_BIT") = QWORD_SIZE_BIT;
+        cpusize.attr("DQWORD") = DQWORD_SIZE;
+        cpusize.attr("DQWORD_BIT") = DQWORD_SIZE_BIT;
+        cpusize.attr("QQWORD") = QQWORD_SIZE;
+        cpusize.attr("QQWORD_BIT") = QQWORD_SIZE_BIT;
+        cpusize.attr("DQQWORD") = DQQWORD_SIZE;
+        cpusize.attr("DQQWORD_BIT") = DQQWORD_SIZE_BIT;
       }
 
     }; /* python namespace */

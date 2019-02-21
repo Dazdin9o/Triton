@@ -75,7 +75,7 @@ class TestOnlyTaintedMode(unittest.TestCase):
         ctx.enableMode(MODE.ONLY_ON_TAINTED, True)
         self.assertEqual(ctx.isModeEnabled(MODE.ONLY_ON_TAINTED), True)
 
-        ctx.taintRegister(ctx.registers.rax)
+        ctx.taintRegister(ctx.registers.x86_rax)
 
         inst = Instruction("\x48\x89\xc3") # mov rbx, rax
         self.assertTrue(ctx.processing(inst))

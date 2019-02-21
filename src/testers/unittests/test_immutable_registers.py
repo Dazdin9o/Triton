@@ -16,10 +16,10 @@ class TestImmutableAArch64Registers(unittest.TestCase):
         self.ctx.setArchitecture(ARCH.AARCH64)
 
     def test_immutable(self):
-        x1  = self.ctx.registers.x1
-        x2  = self.ctx.registers.x2
-        xzr = self.ctx.registers.xzr
-        wzr = self.ctx.registers.wzr
+        x1  = self.ctx.registers.aarch64_x1
+        x2  = self.ctx.registers.aarch64_x2
+        xzr = self.ctx.registers.aarch64_xzr
+        wzr = self.ctx.registers.aarch64_wzr
 
         self.assertEqual(self.ctx.getConcreteRegisterValue(xzr), 0)
         self.assertEqual(self.ctx.getConcreteRegisterValue(wzr), 0)

@@ -31,20 +31,11 @@ class TestX86Arch(unittest.TestCase):
         self.assertTrue(self.ctx.isArchitectureValid())
 
     def test_registers(self):
-        """Check some register can't be accessed on X86 arch."""
-        with self.assertRaises(Exception):
-            self.ctx.registers.rax.getName()
-
-        with self.assertRaises(Exception):
-            self.ctx.registers.zmm1.getName()
-
-        with self.assertRaises(Exception):
-            self.ctx.registers.xmm8.getName()
-
-        with self.assertRaises(Exception):
-            self.ctx.registers.xmm15.getName()
-
-        self.assertEqual(self.ctx.registers.xmm7.getName(), "xmm7")
+        self.assertEqual(self.ctx.registers.x86_rax.getName(), "unknown")
+        self.assertEqual(self.ctx.registers.x86_zmm1.getName(), "unknown")
+        self.assertEqual(self.ctx.registers.x86_xmm8.getName(), "unknown")
+        self.assertEqual(self.ctx.registers.x86_xmm15.getName(), "unknown")
+        self.assertEqual(self.ctx.registers.x86_xmm7.getName(), "xmm7")
 
     def test_register_bit_size(self):
         """Check GPR register bit size."""
@@ -68,9 +59,9 @@ class TestX8664Arch(unittest.TestCase):
 
     def test_registers(self):
         """Check X86_64 specific registers exists."""
-        self.assertEqual(self.ctx.registers.rax.getName(), "rax")
-        self.assertEqual(self.ctx.registers.zmm1.getName(), "zmm1")
-        self.assertEqual(self.ctx.registers.xmm15.getName(), "xmm15")
+        self.assertEqual(self.ctx.registers.x86_rax.getName(), "rax")
+        self.assertEqual(self.ctx.registers.x86_zmm1.getName(), "zmm1")
+        self.assertEqual(self.ctx.registers.x86_xmm15.getName(), "xmm15")
 
     def test_register_bit_size(self):
         """Check GPR register bit size."""
@@ -93,9 +84,9 @@ class TestAArch64(unittest.TestCase):
 
     def test_registers(self):
         """Check AArch64 specific registers exists."""
-        self.assertEqual(self.ctx.registers.x0.getName(), "x0")
-        self.assertEqual(self.ctx.registers.w1.getName(), "w1")
-        self.assertEqual(self.ctx.getParentRegister(self.ctx.registers.w1).getName(), "x1")
+        self.assertEqual(self.ctx.registers.aarch64_x0.getName(), "x0")
+        self.assertEqual(self.ctx.registers.aarch64_w1.getName(), "w1")
+        self.assertEqual(self.ctx.getParentRegister(self.ctx.registers.aarch64_w1).getName(), "x1")
 
     def test_register_bit_size(self):
         """Check GPR register bit size."""
