@@ -409,28 +409,28 @@ namespace triton {
           .def("enableMode",                          &triton::API::enableMode)
           .def("enableSymbolicEngine",                &triton::API::enableSymbolicEngine)
           .def("enableTaintEngine",                   &triton::API::enableTaintEngine)
-          .def("getAllRegisters",                     &triton::API::getAllRegisters, pybind11::return_value_policy::reference)
+          .def("getAllRegisters",                     &triton::API::getAllRegisters, pybind11::return_value_policy::reference_internal)
           .def("getArchitecture",                     &triton::API::getArchitecture)
-          .def("getAstContext",                       &triton::API::getAstContext, pybind11::return_value_policy::reference)
+          .def("getAstContext",                       &triton::API::getAstContext, pybind11::return_value_policy::reference_internal)
           .def("getAstRepresentationMode",            &triton::API::getAstRepresentationMode)
           .def("getConcreteMemoryAreaValue",          &triton::API::getConcreteMemoryAreaValue)
           .def("getGprBitSize",                       &triton::API::getGprBitSize)
           .def("getGprSize",                          &triton::API::getGprSize)
           .def("getModel",                            &triton::API::getModel)
           .def("getModels",                           &triton::API::getModels)
-          .def("getParentRegisters",                  &triton::API::getParentRegisters, pybind11::return_value_policy::reference)
-          .def("getPathConstraints",                  &triton::API::getPathConstraints, pybind11::return_value_policy::reference)
+          .def("getParentRegisters",                  &triton::API::getParentRegisters, pybind11::return_value_policy::reference_internal)
+          .def("getPathConstraints",                  &triton::API::getPathConstraints, pybind11::return_value_policy::reference_internal)
           .def("getPathConstraintsAst",               &triton::API::getPathConstraintsAst)
-          .def("getRegister",                         &triton::API::getRegister, pybind11::return_value_policy::reference)
+          .def("getRegister",                         &triton::API::getRegister, pybind11::return_value_policy::reference_internal)
           .def("getSymbolicExpressionFromId",         &triton::API::getSymbolicExpressionFromId)
           .def("getSymbolicExpressions",              &triton::API::getSymbolicExpressions)
-          .def("getSymbolicRegister",                 &triton::API::getSymbolicRegister, pybind11::return_value_policy::reference)
+          .def("getSymbolicRegister",                 &triton::API::getSymbolicRegister, pybind11::return_value_policy::reference_internal)
           .def("getSymbolicRegisters",                &triton::API::getSymbolicRegisters)
-          .def("getSymbolicVariableFromId",           &triton::API::getSymbolicVariableFromId, pybind11::return_value_policy::reference)
-          .def("getSymbolicVariableFromName",         &triton::API::getSymbolicVariableFromName, pybind11::return_value_policy::reference)
-          .def("getSymbolicVariables",                &triton::API::getSymbolicVariables, pybind11::return_value_policy::reference)
-          .def("getTaintedMemory",                    &triton::API::getTaintedMemory, pybind11::return_value_policy::reference)
-          .def("getTaintedRegisters",                 &triton::API::getTaintedRegisters, pybind11::return_value_policy::reference)
+          .def("getSymbolicVariableFromId",           &triton::API::getSymbolicVariableFromId, pybind11::return_value_policy::reference_internal)
+          .def("getSymbolicVariableFromName",         &triton::API::getSymbolicVariableFromName, pybind11::return_value_policy::reference_internal)
+          .def("getSymbolicVariables",                &triton::API::getSymbolicVariables, pybind11::return_value_policy::reference_internal)
+          .def("getTaintedMemory",                    &triton::API::getTaintedMemory, pybind11::return_value_policy::reference_internal)
+          .def("getTaintedRegisters",                 &triton::API::getTaintedRegisters, pybind11::return_value_policy::reference_internal)
           .def("getTaintedSymbolicExpressions",       &triton::API::getTaintedSymbolicExpressions)
           .def("isArchitectureValid",                 &triton::API::isArchitectureValid)
           .def("isModeEnabled",                       &triton::API::isModeEnabled)
@@ -478,72 +478,72 @@ namespace triton {
           .def("convertExpressionToSymbolicVariable",
             [] (triton::API& self, triton::usize id, triton::uint32 size, const std::string& comment) {
               return self.convertExpressionToSymbolicVariable(id, size, comment);
-            }, pybind11::return_value_policy::reference)
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("convertExpressionToSymbolicVariable",
             [] (triton::API& self, triton::usize id, triton::uint32 size) {
               return self.convertExpressionToSymbolicVariable(id, size);
-            }, pybind11::return_value_policy::reference)
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("convertMemoryToSymbolicVariable",
             [] (triton::API& self, const triton::arch::MemoryAccess& mem, const std::string& comment) {
               return self.convertMemoryToSymbolicVariable(mem, comment);
-            }, pybind11::return_value_policy::reference)
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("convertMemoryToSymbolicVariable",
             [] (triton::API& self, const triton::arch::MemoryAccess& mem) {
               return self.convertMemoryToSymbolicVariable(mem);
-            }, pybind11::return_value_policy::reference)
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("convertRegisterToSymbolicVariable",
             [] (triton::API& self, const triton::arch::Register& reg, const std::string& comment) {
               return self.convertRegisterToSymbolicVariable(reg, comment);
-            }, pybind11::return_value_policy::reference)
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("convertRegisterToSymbolicVariable",
             [] (triton::API& self, const triton::arch::Register& reg) {
               return self.convertRegisterToSymbolicVariable(reg);
-            }, pybind11::return_value_policy::reference)
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("createSymbolicFlagExpression",
             [] (triton::API& self, triton::arch::Instruction& inst, const triton::ast::SharedAbstractNode& node, const triton::arch::Register& flag, const std::string& comment) {
               return self.createSymbolicFlagExpression(inst, node, flag, comment);
-            }, pybind11::return_value_policy::reference)
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("createSymbolicFlagExpression",
             [] (triton::API& self, triton::arch::Instruction& inst, const triton::ast::SharedAbstractNode& node, const triton::arch::Register& flag) {
               return self.createSymbolicFlagExpression(inst, node, flag);
-            }, pybind11::return_value_policy::reference)
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("createSymbolicMemoryExpression",
             [] (triton::API& self, triton::arch::Instruction& inst, const triton::ast::SharedAbstractNode& node, const triton::arch::MemoryAccess& mem, const std::string& comment) {
               return self.createSymbolicMemoryExpression(inst, node, mem, comment);
-            }, pybind11::return_value_policy::reference)
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("createSymbolicMemoryExpression",
             [] (triton::API& self, triton::arch::Instruction& inst, const triton::ast::SharedAbstractNode& node, const triton::arch::MemoryAccess& mem) {
               return self.createSymbolicMemoryExpression(inst, node, mem);
-            }, pybind11::return_value_policy::reference)
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("createSymbolicRegisterExpression",
             [] (triton::API& self, triton::arch::Instruction& inst, const triton::ast::SharedAbstractNode& node, const triton::arch::Register& reg, const std::string& comment) {
               return self.createSymbolicRegisterExpression(inst, node, reg, comment);
-            }, pybind11::return_value_policy::reference)
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("createSymbolicRegisterExpression",
             [] (triton::API& self, triton::arch::Instruction& inst, const triton::ast::SharedAbstractNode& node, const triton::arch::Register& reg) {
               return self.createSymbolicRegisterExpression(inst, node, reg);
-            }, pybind11::return_value_policy::reference)
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("createSymbolicVolatileExpression",
             [] (triton::API& self, triton::arch::Instruction& inst, const triton::ast::SharedAbstractNode& node, const std::string& comment) {
               return self.createSymbolicVolatileExpression(inst, node, comment);
-            }, pybind11::return_value_policy::reference)
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("createSymbolicVolatileExpression",
             [] (triton::API& self, triton::arch::Instruction& inst, const triton::ast::SharedAbstractNode& node) {
               return self.createSymbolicVolatileExpression(inst, node);
-            }, pybind11::return_value_policy::reference)
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("getImmediateAst",
             [] (triton::API& self, const triton::arch::Immediate& imm) {
@@ -558,12 +558,12 @@ namespace triton {
           .def("getParentRegister",
             [] (triton::API& self, const triton::arch::Register& reg) {
               return self.getParentRegister(reg);
-            }, pybind11::return_value_policy::reference)
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("getParentRegister",
             [] (triton::API& self, triton::arch::register_e regId) {
               return self.getParentRegister(regId);
-            }, pybind11::return_value_policy::reference)
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("getRegisterAst",
             [] (triton::API& self, const triton::arch::Register& reg) {
@@ -633,12 +633,12 @@ namespace triton {
           .def("newSymbolicVariable",
             [] (triton::API& self, triton::uint32 varSize, const std::string& comment) {
               return self.newSymbolicVariable(varSize, comment);
-            }, pybind11::return_value_policy::reference)
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("newSymbolicVariable",
             [] (triton::API& self, triton::uint32 varSize) {
               return self.newSymbolicVariable(varSize);
-            }, pybind11::return_value_policy::reference)
+            }, pybind11::return_value_policy::reference_internal)
 
           //.def("removeCallback",                      &triton::API::removeCallback)
 
@@ -746,7 +746,7 @@ namespace triton {
           .def("getConcreteVariableValue",
             [] (triton::API& self, const triton::engines::symbolic::SharedSymbolicVariable& var) -> pybind11::object {
               return pybind11::reinterpret_borrow<pybind11::object>(PyLong_FromUint512(self.getConcreteVariableValue(var)));
-            }, pybind11::return_value_policy::reference)
+            }, pybind11::return_value_policy::reference_internal)
 
           .def("isFlag",
             [] (triton::API& self, triton::arch::register_e regId) {
