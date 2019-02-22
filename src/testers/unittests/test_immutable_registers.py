@@ -46,6 +46,6 @@ class TestImmutableAArch64Registers(unittest.TestCase):
         self.assertEqual(self.ctx.getSymbolicRegisterValue(wzr), 0)
 
         # Assignment
-        self.assertEqual(REG.AARCH64.XZR in self.ctx.getSymbolicRegisters(), False)
-        self.assertEqual(REG.AARCH64.WZR in self.ctx.getSymbolicRegisters(), False)
-        self.assertEqual(REG.AARCH64.PC in self.ctx.getSymbolicRegisters(), True)
+        self.assertEqual(REG.AARCH64_XZR in self.ctx.getSymbolicRegisters(), False)
+        self.assertEqual(REG.AARCH64_WZR in self.ctx.getSymbolicRegisters(), False)
+        self.assertEqual(REG.AARCH64_PC in self.ctx.getSymbolicRegisters(), True)

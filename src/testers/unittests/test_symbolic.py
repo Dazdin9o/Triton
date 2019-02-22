@@ -4,7 +4,7 @@
 
 import unittest
 
-from triton import ARCH, Instruction, CPUSIZE, MemoryAccess, Immediate, TritonContext
+from triton import ARCH, Instruction, CPU_SIZE, MemoryAccess, Immediate, TritonContext
 
 
 class TestSymbolic(unittest.TestCase):
@@ -49,7 +49,7 @@ class TestSymbolic(unittest.TestCase):
         """Check symbolic expression binded to memory can be retrieve."""
         # Bind expr1 to 0x100
         expr1 = self.Triton.newSymbolicExpression(self.astCtxt.bv(0x11, 8))
-        mem = MemoryAccess(0x100, CPUSIZE.BYTE)
+        mem = MemoryAccess(0x100, CPU_SIZE.BYTE)
         self.Triton.assignSymbolicExpressionToMemory(expr1, mem)
 
         # Get expr from memory
@@ -61,7 +61,7 @@ class TestSymbolic(unittest.TestCase):
         """Check symbolic expression binded to multiple memory location."""
         # Bind expr to multi memory location (0x100, 0x101, 0x102, 0x103)
         expr1 = self.Triton.newSymbolicExpression(self.astCtxt.bv(0x11223344, 32))
-        mem = MemoryAccess(0x100, CPUSIZE.DWORD)
+        mem = MemoryAccess(0x100, CPU_SIZE.DWORD)
         self.Triton.assignSymbolicExpressionToMemory(expr1, mem)
 
         # Check we can get back the same values
@@ -102,31 +102,31 @@ class TestSymbolicBuilding(unittest.TestCase):
 
     def test_build_immediate(self):
         """Check symbolic immediate has correct size and evaluation."""
-        node = self.Triton.getImmediateAst(Immediate(0x10, CPUSIZE.BYTE))
+        node = self.Triton.getImmediateAst(Immediate(0x10, CPU_SIZE.BYTE))
         self.assertEqual(node.evaluate(), 0x10)
-        self.assertEqual(node.getBitvectorSize(), CPUSIZE.BYTE_BIT)
+        self.assertEqual(node.getBitvectorSize(), CPU_SIZE.BYTE_BIT)
 
     def test_build_register(self):
         """Check symbolic register has correct size and location."""
-        expr1 = self.Triton.newSymbolicExpression(self.astCtxt.bv(0x1122334455667788, CPUSIZE.QWORD_BIT))
+        expr1 = self.Triton.newSymbolicExpression(self.astCtxt.bv(0x1122334455667788, CPU_SIZE.QWORD_BIT))
         self.Triton.assignSymbolicExpressionToRegister(expr1, self.Triton.registers.x86_rax)
 
         node = self.Triton.getRegisterAst(self.Triton.registers.x86_rax)
         self.assertEqual(node.evaluate(), 0x1122334455667788)
-        self.assertEqual(node.getBitvectorSize(), CPUSIZE.QWORD_BIT)
+        self.assertEqual(node.getBitvectorSize(), CPU_SIZE.QWORD_BIT)
 
         node = self.Triton.getRegisterAst(self.Triton.registers.x86_eax)
         self.assertEqual(node.evaluate(), 0x55667788)
-        self.assertEqual(node.getBitvectorSize(), CPUSIZE.DWORD_BIT)
+        self.assertEqual(node.getBitvectorSize(), CPU_SIZE.DWORD_BIT)
 
         node = self.Triton.getRegisterAst(self.Triton.registers.x86_ax)
         self.assertEqual(node.evaluate(), 0x7788)
-        self.assertEqual(node.getBitvectorSize(), CPUSIZE.WORD_BIT)
+        self.assertEqual(node.getBitvectorSize(), CPU_SIZE.WORD_BIT)
 
         node = self.Triton.getRegisterAst(self.Triton.registers.x86_ah)
         self.assertEqual(node.evaluate(), 0x77)
-        self.assertEqual(node.getBitvectorSize(), CPUSIZE.BYTE_BIT)
+        self.assertEqual(node.getBitvectorSize(), CPU_SIZE.BYTE_BIT)
 
         node = self.Triton.getRegisterAst(self.Triton.registers.x86_al)
         self.assertEqual(node.evaluate(), 0x88)
-        self.assertEqual(node.getBitvectorSize(), CPUSIZE.BYTE_BIT)
+        self.assertEqual(node.getBitvectorSize(), CPU_SIZE.BYTE_BIT)

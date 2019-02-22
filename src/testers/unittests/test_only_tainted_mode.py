@@ -4,7 +4,7 @@
 
 import unittest
 
-from triton import ARCH, MODE, CPUSIZE, TritonContext, Instruction, MemoryAccess
+from triton import ARCH, MODE, CPU_SIZE, TritonContext, Instruction, MemoryAccess
 
 
 def checkAstIntegrity(instruction):

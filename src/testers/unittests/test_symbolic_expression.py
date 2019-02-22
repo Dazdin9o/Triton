@@ -45,8 +45,8 @@ class TestSymbolicExpression(unittest.TestCase):
 
     def test_getType(self):
         """Test getType"""
-        self.assertEqual(self.expr1.getType(), SYMBOLIC.REGISTER_EXPRESSION)
-        self.assertEqual(self.expr2.getType(), SYMBOLIC.MEMORY_EXPRESSION)
+        self.assertEqual(self.expr1.getType(), SYMBOLIC.EXPRESSION.REGISTER)
+        self.assertEqual(self.expr2.getType(), SYMBOLIC.EXPRESSION.MEMORY)
 
     def test_getNewAst(self):
         """Test getNewAst"""
@@ -54,7 +54,7 @@ class TestSymbolicExpression(unittest.TestCase):
 
     def test_getOrigin(self):
         """Test getOrigin"""
-        self.assertEqual(self.expr1.getOrigin().getId(), REG.X86_64.RAX)
+        self.assertEqual(self.expr1.getOrigin().getId(), REG.X86_RAX)
         self.assertEqual(str(self.expr1.getOrigin()), "rax:64 bv[63..0]")
         self.assertEqual(str(self.expr2.getOrigin()), "[@0x55]:64 bv[63..0]")
 

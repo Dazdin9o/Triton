@@ -35,10 +35,10 @@ class TestUndefinedRegisters(unittest.TestCase):
             if inst.getType() == OPCODE.X86.MUL:
                 self.assertEqual(len(inst.getUndefinedRegisters()), 4)
 
-        self.assertEqual(REG.X86_64.SF in self.ctx.getSymbolicRegisters(), False)
-        self.assertEqual(REG.X86_64.ZF in self.ctx.getSymbolicRegisters(), False)
-        self.assertEqual(REG.X86_64.AF in self.ctx.getSymbolicRegisters(), False)
-        self.assertEqual(REG.X86_64.PF in self.ctx.getSymbolicRegisters(), False)
+        self.assertEqual(REG.X86_SF in self.ctx.getSymbolicRegisters(), False)
+        self.assertEqual(REG.X86_ZF in self.ctx.getSymbolicRegisters(), False)
+        self.assertEqual(REG.X86_AF in self.ctx.getSymbolicRegisters(), False)
+        self.assertEqual(REG.X86_PF in self.ctx.getSymbolicRegisters(), False)
 
 
     def test_undefined_off(self):
@@ -60,7 +60,7 @@ class TestUndefinedRegisters(unittest.TestCase):
             if inst.getType() == OPCODE.X86.MUL:
                 self.assertEqual(len(inst.getUndefinedRegisters()), 4)
 
-        self.assertEqual(REG.X86_64.SF in self.ctx.getSymbolicRegisters(), True)
-        self.assertEqual(REG.X86_64.ZF in self.ctx.getSymbolicRegisters(), True)
-        self.assertEqual(REG.X86_64.AF in self.ctx.getSymbolicRegisters(), True)
-        self.assertEqual(REG.X86_64.PF in self.ctx.getSymbolicRegisters(), True)
+        self.assertEqual(REG.X86_SF in self.ctx.getSymbolicRegisters(), True)
+        self.assertEqual(REG.X86_ZF in self.ctx.getSymbolicRegisters(), True)
+        self.assertEqual(REG.X86_AF in self.ctx.getSymbolicRegisters(), True)
+        self.assertEqual(REG.X86_PF in self.ctx.getSymbolicRegisters(), True)

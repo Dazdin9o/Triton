@@ -19,9 +19,9 @@ class TestFlags(unittest.TestCase):
 
     def test_set_flags(self):
         """Check flags can be set in any order with a correct output result."""
-        registers = [REG.X86_64.ZF, REG.X86_64.AF, REG.X86_64.IF, REG.X86_64.CF,
-                     REG.X86_64.DF, REG.X86_64.PF, REG.X86_64.SF, REG.X86_64.OF,
-                     REG.X86_64.TF]
+        registers = [REG.X86_ZF, REG.X86_AF, REG.X86_IF, REG.X86_CF,
+                     REG.X86_DF, REG.X86_PF, REG.X86_SF, REG.X86_OF,
+                     REG.X86_TF]
         values = [0] * len(registers)
 
         rand_registers = list(registers)
@@ -35,9 +35,9 @@ class TestFlags(unittest.TestCase):
 
     def test_unset_flags(self):
         """Check flags can be unset in any order with a correct result."""
-        registers = [REG.X86_64.ZF, REG.X86_64.AF, REG.X86_64.IF, REG.X86_64.CF,
-                     REG.X86_64.DF, REG.X86_64.PF, REG.X86_64.SF, REG.X86_64.OF,
-                     REG.X86_64.TF]
+        registers = [REG.X86_ZF, REG.X86_AF, REG.X86_IF, REG.X86_CF,
+                     REG.X86_DF, REG.X86_PF, REG.X86_SF, REG.X86_OF,
+                     REG.X86_TF]
         values = [1] * len(registers)
         for reg in registers:
             self.Triton.setConcreteRegisterValue(self.Triton.getRegister(reg), 1)

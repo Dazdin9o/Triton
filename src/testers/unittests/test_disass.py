@@ -42,11 +42,11 @@ class TestAArch64Disass(unittest.TestCase):
         op1 = inst.getOperands()[1]
 
         self.assertEqual(op0.getName(), "w1")
-        self.assertEqual(op0.getSize(), CPUSIZE.DWORD)
-        self.assertEqual(op1.getSize(), CPUSIZE.DWORD)
+        self.assertEqual(op0.getSize(), CPU_SIZE.DWORD)
+        self.assertEqual(op1.getSize(), CPU_SIZE.DWORD)
         self.assertEqual(op1.getBaseRegister(), self.ctx.registers.aarch64_sp)
         self.assertEqual(op1.getDisplacement().getValue(), 8)
-        self.assertEqual(op1.getDisplacement().getSize(), CPUSIZE.QWORD)
+        self.assertEqual(op1.getDisplacement().getSize(), CPU_SIZE.QWORD)
 
     def test_inst3(self):
         inst = Instruction("\x20\x08\x02\x8b") # add x0, x1, x2, lsl #2
@@ -61,11 +61,11 @@ class TestAArch64Disass(unittest.TestCase):
         op2 = inst.getOperands()[2]
 
         self.assertEqual(op0.getName(), "x0")
-        self.assertEqual(op0.getSize(), CPUSIZE.QWORD)
+        self.assertEqual(op0.getSize(), CPU_SIZE.QWORD)
         self.assertEqual(op1.getName(), "x1")
-        self.assertEqual(op1.getSize(), CPUSIZE.QWORD)
+        self.assertEqual(op1.getSize(), CPU_SIZE.QWORD)
         self.assertEqual(op2.getName(), "x2")
-        self.assertEqual(op2.getSize(), CPUSIZE.QWORD)
+        self.assertEqual(op2.getSize(), CPU_SIZE.QWORD)
 
         self.assertEqual(op0.getShiftType(), SHIFT.AARCH64.INVALID)
         self.assertEqual(op1.getShiftType(), SHIFT.AARCH64.INVALID)
@@ -85,11 +85,11 @@ class TestAArch64Disass(unittest.TestCase):
         op2 = inst.getOperands()[2]
 
         self.assertEqual(op0.getName(), "x0")
-        self.assertEqual(op0.getSize(), CPUSIZE.QWORD)
+        self.assertEqual(op0.getSize(), CPU_SIZE.QWORD)
         self.assertEqual(op1.getName(), "x1")
-        self.assertEqual(op1.getSize(), CPUSIZE.QWORD)
+        self.assertEqual(op1.getSize(), CPU_SIZE.QWORD)
         self.assertEqual(op2.getName(), "w2")
-        self.assertEqual(op2.getSize(), CPUSIZE.DWORD)
+        self.assertEqual(op2.getSize(), CPU_SIZE.DWORD)
 
         self.assertEqual(op0.getShiftType(), SHIFT.AARCH64.INVALID)
         self.assertEqual(op1.getShiftType(), SHIFT.AARCH64.INVALID)
