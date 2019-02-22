@@ -394,6 +394,14 @@ namespace triton {
 
       void initTritonContextObject(pybind11::module& pyTriton) {
 
+        // TODO: removeCallback
+        // TODO: addCallback
+        // TODO: getParentRegisters() -> return a clean list of Register. Even in the C++ API?
+        // TODO: getAllRegisters() -> return a clean list of Register. Even in the C++ API?
+        // TODO: OperandWrapper
+        // TODO: Operator ==, >, < pour Imm, Mem, Reg, Ins...
+        // TODO: Faire la synchro API <-> doc
+
         auto ctx = pybind11::class_<triton::API>(pyTriton, "TritonContext", "The TritonContext class")
 
           .def(pybind11::init<>())
@@ -413,7 +421,6 @@ namespace triton {
           .def("getArchitecture",                     &triton::API::getArchitecture)
           .def("getAstContext",                       &triton::API::getAstContext, pybind11::return_value_policy::reference_internal)
           .def("getAstRepresentationMode",            &triton::API::getAstRepresentationMode)
-          .def("getConcreteMemoryAreaValue",          &triton::API::getConcreteMemoryAreaValue)
           .def("getGprBitSize",                       &triton::API::getGprBitSize)
           .def("getGprSize",                          &triton::API::getGprSize)
           .def("getModel",                            &triton::API::getModel)
@@ -545,6 +552,54 @@ namespace triton {
               return self.createSymbolicVolatileExpression(inst, node);
             }, pybind11::return_value_policy::reference_internal)
 
+          .def("evaluateAstViaZ3",
+            [] (triton::API& self, const triton::ast::SharedAbstractNode& node) -> pybind11::object {
+              return pybind11::reinterpret_borrow<pybind11::object>(PyLong_FromUint512(self.evaluateAstViaZ3(node)));
+            })
+
+          .def("getConcreteMemoryAreaValue",
+            [] (triton::API& self, triton::uint64 addr, triton::usize size) {
+              std::vector<triton::uint8> vv = self.getConcreteMemoryAreaValue(addr, size);
+              triton::uint8* area = new triton::uint8[vv.size()];
+
+              for (triton::usize index = 0; index < vv.size(); index++)
+                area[index] = vv[index];
+
+              std::string s(reinterpret_cast<const char*>(area), vv.size());
+              delete[] area;
+              return pybind11::bytes(s);
+            })
+
+          .def("getConcreteMemoryValue",
+            [] (triton::API& self, triton::uint64 addr) -> pybind11::object {
+              return pybind11::reinterpret_borrow<pybind11::object>(PyLong_FromUint512(self.getConcreteMemoryValue(addr)));
+            })
+
+          .def("getConcreteMemoryValue",
+            [] (triton::API& self, const triton::arch::MemoryAccess& mem) -> pybind11::object {
+              return pybind11::reinterpret_borrow<pybind11::object>(PyLong_FromUint512(self.getConcreteMemoryValue(mem)));
+            })
+
+          .def("getConcreteRegisterValue",
+            [] (triton::API& self, const triton::arch::Register& reg) -> pybind11::object {
+              return pybind11::reinterpret_borrow<pybind11::object>(PyLong_FromUint512(self.getConcreteRegisterValue(reg)));
+            })
+
+          .def("getSymbolicMemoryValue",
+            [] (triton::API& self, const triton::arch::MemoryAccess& mem) -> pybind11::object {
+              return pybind11::reinterpret_borrow<pybind11::object>(PyLong_FromUint512(self.getSymbolicMemoryValue(mem)));
+            })
+
+          .def("getSymbolicRegisterValue",
+            [] (triton::API& self, const triton::arch::Register& reg) -> pybind11::object {
+              return pybind11::reinterpret_borrow<pybind11::object>(PyLong_FromUint512(self.getSymbolicRegisterValue(reg)));
+            })
+
+          .def("getConcreteVariableValue",
+            [] (triton::API& self, const triton::engines::symbolic::SharedSymbolicVariable& var) -> pybind11::object {
+              return pybind11::reinterpret_borrow<pybind11::object>(PyLong_FromUint512(self.getConcreteVariableValue(var)));
+            }, pybind11::return_value_policy::reference_internal)
+
           .def("getImmediateAst",
             [] (triton::API& self, const triton::arch::Immediate& imm) {
               return self.getImmediateAst(imm);
@@ -618,6 +673,36 @@ namespace triton {
           .def("isMemoryTainted",
             [] (triton::API& self, const triton::arch::MemoryAccess& mem) {
               return self.isMemoryTainted(mem);
+            })
+
+          .def("isFlag",
+            [] (triton::API& self, triton::arch::register_e regId) {
+              return self.isFlag(regId);
+            })
+
+          .def("isFlag",
+            [] (triton::API& self, const triton::arch::Register& reg) {
+              return self.isFlag(reg);
+            })
+
+          .def("isRegister",
+            [] (triton::API& self, triton::arch::register_e regId) {
+              return self.isRegister(regId);
+            })
+
+          .def("isRegister",
+            [] (triton::API& self, const triton::arch::Register& reg) {
+              return self.isRegister(reg);
+            })
+
+          .def("isRegisterValid",
+            [] (triton::API& self, triton::arch::register_e regId) {
+              return self.isRegisterValid(regId);
+            })
+
+          .def("isRegisterValid",
+            [] (triton::API& self, const triton::arch::Register& reg) {
+              return self.isRegisterValid(reg);
             })
 
           .def("newSymbolicExpression",
@@ -711,71 +796,6 @@ namespace triton {
           .def("untaintMemory",
             [] (triton::API& self, const triton::arch::MemoryAccess& mem) {
               return self.untaintMemory(mem);
-            })
-
-          .def("evaluateAstViaZ3",
-            [] (triton::API& self, const triton::ast::SharedAbstractNode& node) -> pybind11::object {
-              return pybind11::reinterpret_borrow<pybind11::object>(PyLong_FromUint512(self.evaluateAstViaZ3(node)));
-            })
-
-          .def("getConcreteMemoryValue",
-            [] (triton::API& self, triton::uint64 addr) -> pybind11::object {
-              return pybind11::reinterpret_borrow<pybind11::object>(PyLong_FromUint512(self.getConcreteMemoryValue(addr)));
-            })
-
-          .def("getConcreteMemoryValue",
-            [] (triton::API& self, const triton::arch::MemoryAccess& mem) -> pybind11::object {
-              return pybind11::reinterpret_borrow<pybind11::object>(PyLong_FromUint512(self.getConcreteMemoryValue(mem)));
-            })
-
-          .def("getConcreteRegisterValue",
-            [] (triton::API& self, const triton::arch::Register& reg) -> pybind11::object {
-              return pybind11::reinterpret_borrow<pybind11::object>(PyLong_FromUint512(self.getConcreteRegisterValue(reg)));
-            })
-
-          .def("getSymbolicMemoryValue",
-            [] (triton::API& self, const triton::arch::MemoryAccess& mem) -> pybind11::object {
-              return pybind11::reinterpret_borrow<pybind11::object>(PyLong_FromUint512(self.getSymbolicMemoryValue(mem)));
-            })
-
-          .def("getSymbolicRegisterValue",
-            [] (triton::API& self, const triton::arch::Register& reg) -> pybind11::object {
-              return pybind11::reinterpret_borrow<pybind11::object>(PyLong_FromUint512(self.getSymbolicRegisterValue(reg)));
-            })
-
-          .def("getConcreteVariableValue",
-            [] (triton::API& self, const triton::engines::symbolic::SharedSymbolicVariable& var) -> pybind11::object {
-              return pybind11::reinterpret_borrow<pybind11::object>(PyLong_FromUint512(self.getConcreteVariableValue(var)));
-            }, pybind11::return_value_policy::reference_internal)
-
-          .def("isFlag",
-            [] (triton::API& self, triton::arch::register_e regId) {
-              return self.isFlag(regId);
-            })
-
-          .def("isFlag",
-            [] (triton::API& self, const triton::arch::Register& reg) {
-              return self.isFlag(reg);
-            })
-
-          .def("isRegister",
-            [] (triton::API& self, triton::arch::register_e regId) {
-              return self.isRegister(regId);
-            })
-
-          .def("isRegister",
-            [] (triton::API& self, const triton::arch::Register& reg) {
-              return self.isRegister(reg);
-            })
-
-          .def("isRegisterValid",
-            [] (triton::API& self, triton::arch::register_e regId) {
-              return self.isRegisterValid(regId);
-            })
-
-          .def("isRegisterValid",
-            [] (triton::API& self, const triton::arch::Register& reg) {
-              return self.isRegisterValid(reg);
             })
 
           .def_readonly("registers", &triton::API::registers);

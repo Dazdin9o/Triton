@@ -24,8 +24,8 @@ class TestPathConstraint(unittest.TestCase):
             "\x0F\x84\x55\x00\x00\x00",  # je 0x55
         ]
 
-        self.ctx.convertRegisterToSymbolicVariable(self.ctx.registers.eax)
-        self.ctx.convertRegisterToSymbolicVariable(self.ctx.registers.ebx)
+        self.ctx.convertRegisterToSymbolicVariable(self.ctx.registers.x86_eax)
+        self.ctx.convertRegisterToSymbolicVariable(self.ctx.registers.x86_ebx)
 
         for opcodes in trace:
             self.ctx.processing(Instruction(opcodes))

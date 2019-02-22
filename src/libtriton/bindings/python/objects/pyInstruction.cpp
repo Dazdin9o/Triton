@@ -261,7 +261,8 @@ namespace triton {
 
           .def("getOpcode",
             [] (const triton::arch::Instruction& self) -> pybind11::bytes {
-              return std::string(reinterpret_cast<const char*>(self.getOpcode()), self.getSize());
+              std::string s(reinterpret_cast<const char*>(self.getOpcode()), self.getSize());
+              return pybind11::bytes(s);
             })
 
           .def("getOperands",

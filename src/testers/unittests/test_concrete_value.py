@@ -54,11 +54,11 @@ class TestX86ConcreteRegisterValue(unittest.TestCase):
                 pass
 
         """Set everything to zero"""
-        for r in self.ar:
+        for k, r in self.ar.items():
             self.Triton.setConcreteRegisterValue(r, 0)
 
         """Check if everything is equal to zero"""
-        for r in self.ar:
+        for k, r in self.ar.items():
             self.assertEqual(self.Triton.getConcreteRegisterValue(r), 0)
 
 class TestX8664ConcreteRegisterValue(unittest.TestCase):
@@ -112,11 +112,11 @@ class TestX8664ConcreteRegisterValue(unittest.TestCase):
                 pass
 
         """Set everything to zero"""
-        for r in self.ar:
+        for k, r in self.ar.items():
             self.Triton.setConcreteRegisterValue(r, 0)
 
         """Check if everything is equal to zero"""
-        for r in self.ar:
+        for k, r in self.ar.items():
             self.assertEqual(self.Triton.getConcreteRegisterValue(r), 0)
 
 class TestX86ConcreteMemoryValue(unittest.TestCase):

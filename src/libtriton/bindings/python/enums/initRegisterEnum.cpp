@@ -82,7 +82,7 @@ namespace triton {
         #include "triton/x86.spec"
 
         #define REG_SPEC(UPPER_NAME, _1, _2, _3, _4, _5) \
-        s = std::string("ARCH64_") + #UPPER_NAME; \
+        s = std::string("AARCH64_") + #UPPER_NAME; \
         reg.value(s.c_str(), triton::arch::ID_REG_AARCH64_##UPPER_NAME);
         #define REG_SPEC_NO_CAPSTONE REG_SPEC
         #include "triton/aarch64.spec"

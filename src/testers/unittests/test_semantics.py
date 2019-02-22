@@ -343,7 +343,7 @@ class TestCustomIR(unittest.TestCase):
     def test_push_esp(self):
         ctx = TritonContext()
         ctx.setArchitecture(ARCH.X86)
-        esp = ctx.getRegisterAst(ctx.getRegister(REG.X86.ESP))
+        esp = ctx.getRegisterAst(ctx.getRegister(REG.X86_ESP))
         code = [
             (0xdeadbeaf, "\x54"),  # push esp
             (0xdeadbeb0, "\xc3"),  # ret
@@ -353,27 +353,27 @@ class TestCustomIR(unittest.TestCase):
             insn.setOpcode(opcode)
             insn.setAddress(addr)
             ctx.processing(insn)
-        eip = ctx.getRegisterAst(ctx.getRegister(REG.X86.EIP))
+        eip = ctx.getRegisterAst(ctx.getRegister(REG.X86_EIP))
         self.assertTrue(ctx.isSat(eip == esp))
 
     def test_popal(self):
         ctx = TritonContext()
         ctx.setArchitecture(ARCH.X86)
-        esp_old = ctx.getRegisterAst(ctx.getRegister(REG.X86.ESP))
+        esp_old = ctx.getRegisterAst(ctx.getRegister(REG.X86_ESP))
         insn = Instruction()
         insn.setOpcode("\x61")  # popal
         ctx.processing(insn)
-        esp_new = ctx.getRegisterAst(ctx.getRegister(REG.X86.ESP))
+        esp_new = ctx.getRegisterAst(ctx.getRegister(REG.X86_ESP))
         self.assertTrue(ctx.isSat(esp_new == esp_old + 32))
 
     def test_popf_x86(self):
         ctx = TritonContext()
         ctx.setArchitecture(ARCH.X86)
-        esp_old = ctx.getRegisterAst(ctx.getRegister(REG.X86.ESP))
+        esp_old = ctx.getRegisterAst(ctx.getRegister(REG.X86_ESP))
         insn = Instruction()
         insn.setOpcode("\x66\x9d")  # popf
         ctx.processing(insn)
-        esp_new = ctx.getRegisterAst(ctx.getRegister(REG.X86.ESP))
+        esp_new = ctx.getRegisterAst(ctx.getRegister(REG.X86_ESP))
         self.assertTrue(ctx.isSat(esp_new == esp_old + 4))
 
     def test_popf_x86_64(self):

@@ -28,9 +28,9 @@ class TestSymbolicVariable(unittest.TestCase):
 
     def test_kind(self):
         """Test kind"""
-        self.assertEqual(self.v0.getType(), SYMBOLIC.UNDEFINED_VARIABLE)
-        self.assertEqual(self.v1.getType(), SYMBOLIC.UNDEFINED_VARIABLE)
-        self.assertEqual(self.v2.getType(), SYMBOLIC.UNDEFINED_VARIABLE)
+        self.assertEqual(self.v0.getType(), SYMBOLIC.VARIABLE.UNDEFINED)
+        self.assertEqual(self.v1.getType(), SYMBOLIC.VARIABLE.UNDEFINED)
+        self.assertEqual(self.v2.getType(), SYMBOLIC.VARIABLE.UNDEFINED)
 
     def test_name(self):
         """Test name"""
@@ -40,9 +40,9 @@ class TestSymbolicVariable(unittest.TestCase):
 
     def test_bitsize(self):
         """Test name"""
-        self.assertEqual(self.v0.getBitSize(), 8)
-        self.assertEqual(self.v1.getBitSize(), 16)
-        self.assertEqual(self.v2.getBitSize(), 32)
+        self.assertEqual(self.v0.getSize(), 8)
+        self.assertEqual(self.v1.getSize(), 16)
+        self.assertEqual(self.v2.getSize(), 32)
 
     def test_comment(self):
         """Test comment"""
