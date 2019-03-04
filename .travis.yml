@@ -48,7 +48,7 @@ matrix:
 
         # Linux gcc 5.0 with python 3.6
         - os: linux
-          dist: trusty
+          dist: xenial
           compiler: gcc
           python: 3.6
           addons:
@@ -136,7 +136,7 @@ matrix:
 
         # Linux clang 5.0 with python 3.6
         - os: linux
-          dist: trusty
+          dist: xenial
           compiler: clang
           python: 3.6
           addons:
